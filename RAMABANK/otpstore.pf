@@ -1,0 +1,19 @@
+     A* ==========================================================
+     A* RAMA BANK - OTP Store (transient one-time-passcodes)
+     A* New table. Needed because OTPVERPGM had no real backing
+     A* store and FUNDTRPGM/CARDDTLPGM used a hardcoded '123456'.
+     A* A row is inserted when an OTP is generated and consumed
+     A* (deleted) on successful verification or expiry.
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R OTPSREC
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            PURPOSE       10A         COLHDG('Purpose' +
+     A                                             '(FUNDTR/PIN/etc)')
+     A            OTPHASH       64A         COLHDG('Hash of OTP value')
+     A            GENTIME         Z         COLHDG('Generated Timestamp')
+     A            EXPTIME         Z         COLHDG('Expiry Timestamp')
+     A            ATTEMPTS       3B 0       COLHDG('Verify Attempts')
+     A                                      DFT(0)
+     A          K CUSTID
+     A          K PURPOSE

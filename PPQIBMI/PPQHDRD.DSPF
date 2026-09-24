@@ -1,0 +1,72 @@
+     A**************************************************************
+     A* PPQHDRD - Protocol Search (subfile) + Header Detail
+     A**************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      PRINT
+     A                                      CA03(03 'Exit')
+     A                                      CA12(12 'Cancel')
+     A                                      CF06(06 'Add')
+     A                                      CF09(09 'Print')
+     A                                      CF15(15 'Search')
+     A                                      INDARA
+     A          R SFL1                      SFL
+     A            $PROTNOS      20A  O  4  2
+     A            $REVN          3S 0O  4 23
+     A            $PRODN        30A  O  4 27
+     A            $STATS        10A  O  4 59
+     A            $SFLOPT        1A  B  4 70
+     A**************************************************************
+     A          R SFL1CTL                   SFLCTL(SFL1)
+     A                                      OVERLAY
+     A                                      SFLSIZ(0050)
+     A                                      SFLPAG(0012)
+     A N31                                  SFLDSP
+     A N31                                  SFLDSPCTL
+     A N31                                  SFLCLR
+     A  31                                  SFLINZ
+     A            $RRN1          4S 0H      SFLRCDNBR
+     A                                  1  2'PPQ Protocol Management System'
+     A                                      DSPATR(HI)
+     A                                  1 65'PPQHDRD'
+     A                                  2  2'Protocol Search'
+     A                                  3  2'Protocol No.'
+     A                                  3 23'Rev'
+     A                                  3 27'Product'
+     A                                  3 59'Status'
+     A                                  3 70'Opt'
+     A**************************************************************
+     A          R SFL1FTR
+     A                                      OVERLAY
+     A                                 20  2'2=Select  4=Delete  5=Inquire'
+     A                                      COLOR(BLU)
+     A                                 21  2'F3=Exit  F6=Add  F9=Print'
+     A                                      COLOR(BLU)
+     A                                 22  2'F15=Search'
+     A                                      COLOR(BLU)
+     A**************************************************************
+     A          R HDRDTL
+     A                                      OVERLAY
+     A                                  1  2'Protocol Header'
+     A                                      DSPATR(HI)
+     A                                  3  2'Protocol No. . .'
+     A            $D_PROTNO     20A  O  3 22
+     A                                  3 50'Status . . .'
+     A            $D_STATUS     10A  O  3 65
+     A                                  5  2'Product Code . .'
+     A            $D_PRODCD     15A  B  5 22
+     A                                  6  2'Product Name . .'
+     A            $D_PRODNM     50A  B  6 22
+     A                                  7  2'Strength . . . .'
+     A            $D_STRNG      40A  B  7 22
+     A                                  8  2'Dosage Form. . .'
+     A            $D_DOSFRM     40A  B  8 22
+     A                                  9  2'Market . . . . .'
+     A            $D_MARKET     50A  B  9 22
+     A                                 10  2'Batch Size . . .'
+     A            $D_BATSZ      15S 3B 10 22
+     A            $D_BATUOM      6A  B 10 40
+     A                                 11  2'Validation Type.'
+     A            $D_VTYPE       2A  B 11 22
+     A                                 11 26'(PR/CO/RV/LG/NP/ST)'
+     A                                 23  2'F3=Exit  F10=Approve  F12=Cancel'
+     A                                      COLOR(BLU)

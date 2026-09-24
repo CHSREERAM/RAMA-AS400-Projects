@@ -1,0 +1,16 @@
+     A***************************************************************
+     A* MDNSTRMNT  - DDS Physical File for MD_INSTRUMENT
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MDNSTRMNTR
+     A            INSTRMNTCD    15A
+     A                                      ALIAS(INSTRUMENT_CD)
+     A            INSTRMNTNM    80A
+     A                                      VARLEN
+     A                                      ALIAS(INSTRUMENT_NAME)
+     A            CLBRTNFRQD     4B 0
+     A                                      ALWNULL
+     A                                      ALIAS(CALIBRATION_FREQ_DAYS)
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K INSTRMNTCD

@@ -1,0 +1,54 @@
+     A***************************************************************
+     A* PPQ_HEADER - DDS Physical File for PPQ_HEADER
+     A* Module 3 - PPQ Protocol Header
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQ_HEADER
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            PROTOCOLNO    20A
+     A                                      VARLEN
+     A                                      ALIAS(PROTOCOL_NO)
+     A            REVISIONNO     4B 0
+     A                                      ALIAS(REVISION_NO)
+     A            VERSION_NO     4B 0
+     A            PRODUCT_CD    15A
+     A            PRDCTNM       80A
+     A                                      VARLEN
+     A                                      ALIAS(PRODUCT_NAME)
+     A            STRENGTH      40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            DOSAGEFORM    40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(DOSAGE_FORM)
+     A            MARKET        60A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            BATCH_SIZE    15P 3
+     A                                      ALWNULL
+     A            BTCHSZM        6A
+     A                                      ALWNULL
+     A                                      ALIAS(BATCH_SIZE_UOM)
+     A            VLDTNTYP       2A
+     A                                      ALIAS(VALIDATION_TYPE)
+     A                                      VALUES('PR' 'CO' 'RV' 'LG' 'NP'    +
+     A                                      'ST')
+     A            STATUS        10A
+     A                                      VARLEN
+     A                                      VALUES('DRAFT' 'REVIEW' 'APPROVED' +
+     A                                      'EXECUTED' 'CLOSED')
+     A            CREATED_BY    10A
+     A                                      VARLEN
+     A            CREATED_TS      Z
+     A            UPDATED_BY    10A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            UPDATED_TS      Z
+     A                                      ALWNULL
+     A***************************************************************
+     A          K PROTOCOLID
+     A***************************************************************
+     A* CONVERSION NOTES:
+     A*  - PROTOCOL_ID: SQL IDENTITY not supported in DDS - populate from the ma

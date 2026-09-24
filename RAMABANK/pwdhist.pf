@@ -1,0 +1,10 @@
+     A* ==========================================================
+     A* RAMA BANK - Password History File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R PWDHREC
+     A            PHID           9B 0       COLHDG('History ID')
+     A            USERID        20A         COLHDG('User ID')
+     A            PWDHASH       64A         COLHDG('Password Hash')
+     A            CHGDATE         Z         COLHDG('Change Timestamp')
+     A          K PHID

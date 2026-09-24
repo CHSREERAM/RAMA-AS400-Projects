@@ -1,0 +1,16 @@
+     A***************************************************************
+     A* MDPCKGNGMT - DDS Physical File for MD_PACKAGING_MATERIAL
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MDPCKGNGMR
+     A            PKGMTRLCD     15A
+     A                                      ALIAS(PKG_MATERIAL_CD)
+     A            PKGMTRLNM     80A
+     A                                      VARLEN
+     A                                      ALIAS(PKG_MATERIAL_NAME)
+     A            PKG_TYPE      40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K PKGMTRLCD

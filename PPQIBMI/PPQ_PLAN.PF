@@ -1,0 +1,26 @@
+     A***************************************************************
+     A* PPQ_PLAN   - DDS Physical File for PPQ_PLAN
+     A* Module 16 - Qualification Plan
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQ_PLANR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            PLAN_SEQ       4B 0
+     A            CQA_SEQ        4B 0
+     A                                      ALWNULL
+     A            SMPLNGPLN    150A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(SAMPLING_PLAN)
+     A            TSTNGPLN     150A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(TESTING_PLAN)
+     A            ACCPTCRTR    150A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(ACCEPT_CRITERIA)
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K PLAN_SEQ

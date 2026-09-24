@@ -1,0 +1,57 @@
+     A*%%***********************************************************************
+     A*%% RAMA BANK - DASHBOARD SCREEN WITH SUBFILE
+     A*%% Corrected/merged from DASHSCR + DASHSCR1. Uses $-prefixed field
+     A*%% names consistently (matches FUNDSCR/STMTSCR/ACCTDTLSCR convention).
+     A*%% $BALANCE changed from 15Y2 to 15P2 to match ACCTMST.BALANCE (15P2).
+     A* Edit Code  Output Result   Notes
+     A* EDTCDE(4)     12345        Zero suppressed, no commas.
+     A* EDTCDE(J)     12,345       Commas inserted.
+     A* EDTCDE(Z)     12345        Same as 4, but displays a zero value
+     A*                            as 0 instead of a blank screen.
+     A* EDWRD('  /  /  ')  12/31/99     Displays date in MM/DD/YY format.
+     A* acts as a literal mask or template, telling the system exactly where
+     A*  to place spaces, symbols, hyphens, and negative signs on the screen
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A          R DASHSFL                   SFL
+     A            $SEL           1A  B  8  2
+     A            $ACCTNUM      20A  O  8  5DSPATR(HI)
+     A            $ACCTTYPE      3A  O  8 28
+     A            $BALANCE      15  2O  8 35EDTCDE(4)
+     A            $STATUS        1A  O  8 55
+     A*
+     A          R DASHCTL                   SFLCTL(DASHSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'RAMA BANK - DASHBOARD'
+     A                                      DSPATR(HI)
+     A                                  2 65DATE
+     A                                      EDTWRD('  /  /  ')
+     A                                  2 74TIME
+     A                                  4  2'Customer:'
+     A            $CUSTNAME     40A  O  4 12DSPATR(HI)
+     A                                  6  2'Opt'
+     A                                  6  6'Account Number'
+     A                                  6 28'Type'
+     A                                  6 35'Balance'
+     A                                  6 55'Status'
+     A*
+     A          R DASHMENU
+     A                                      OVERLAY
+     A                                 20  2'1=Accounts 2=TRANSFERS-
+     A                                        3=Cards 4=Loans 5=Deposits'
+     A                                      COLOR(BLU)
+     A                                 21  2'6=Bill Pay    7=Profile-
+     A                                         8=BENEFIC  9=ADMIN-
+     A                                         F3=LOGOUT'
+     A                                      COLOR(BLU)
+     A            $ERRMSG       50A  O 22  2DSPATR(HI) COLOR(RED)
+     A                                 23  2'Selection:'
+     A            $MENUOPT       1A  B 23 13

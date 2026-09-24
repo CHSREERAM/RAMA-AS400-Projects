@@ -1,0 +1,31 @@
+     A***************************************************************
+     A* PPQ_RISK   - DDS Physical File for PPQ_RISK
+     A* Module 15 - Quality Risk Analysis (FMEA-style)
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQ_RISKR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            RISK_SEQ       4B 0
+     A            RISK_DESC    150A
+     A                                      VARLEN
+     A            CPP_SEQ        4B 0
+     A                                      ALWNULL
+     A            SEVERITY       4B 0
+     A            OCCURRENCE     4B 0
+     A            DETECTION      4B 0
+     A            RPN            4B 0
+     A                                      ALWNULL
+     A            MITIGATION   200A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            RSDLRSK       20A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(RESIDUAL_RISK)
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K RISK_SEQ
+     A***************************************************************
+     A* CONVERSION NOTES:
+     A*  - RPN: SQL GENERATED ALWAYS AS (SEVERITY * OCCURRENCE * DETECTION) comp

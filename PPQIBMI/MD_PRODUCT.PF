@@ -1,0 +1,30 @@
+     A***************************************************************
+     A* MD_PRODUCT - DDS Physical File for MD_PRODUCT
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MD_PRODUCR
+     A            PRODUCT_CD    15A
+     A            GNRCNM        80A
+     A                                      VARLEN
+     A                                      ALIAS(GENERIC_NAME)
+     A            BRAND_NAME    80A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            DOSAGEFORM    40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(DOSAGE_FORM)
+     A            DFLTSTRNGT    40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(DEFAULT_STRENGTH)
+     A            SHLFLFMNTH     4B 0
+     A                                      ALWNULL
+     A                                      ALIAS(SHELF_LIFE_MONTHS)
+     A            STRGCND       60A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(STORAGE_COND)
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K PRODUCT_CD

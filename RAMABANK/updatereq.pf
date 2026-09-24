@@ -1,0 +1,14 @@
+     A* ==========================================================
+     A* RAMA BANK - Update Request File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R UPDTREC
+     A            REQID          9B 0       COLHDG('Request ID')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            FIELDNAME     50A         COLHDG('Field Name')
+     A            OLDVAL       200A         COLHDG('Old Value')
+     A            NEWVAL       200A         COLHDG('New Value')
+     A            REQDATE         L         COLHDG('Request Date')
+     A            STATUS         1A         COLHDG('Status (P/A/R)')
+     A                                      DFT('P')
+     A          K REQID

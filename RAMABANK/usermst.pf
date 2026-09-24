@@ -1,0 +1,26 @@
+     A* ==========================================================
+     A* RAMA BANK - User Master File
+     A* BUG-01 FIX: Added CUSTID column - DASHPGM and downstream
+     A* programs join USERMST to CUSTMST via this column. Without
+     A* it, every login successfully authenticated but then abended
+     A* on the dashboard lookup (SQL0206 column not found).
+     A* A = CHARECTER, B = BINARY, D = DECIMAL, I = INTEGER,
+     A* P = PACKED DECIMAL
+     A* Binary data is a type of data that only has two possible values.
+     A* These values are often represented by the numbers 0 and 1, or
+     A* the words Yes and No or True and False.
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R USERMREC
+     A            USERID        20A         COLHDG('User ID')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            PWDHASH       64A         COLHDG('Password Hash' +
+     A                                             '(SHA256)')
+     A            LOCKFLAG       1A         COLHDG('Lock Flag (Y/N)')
+     A                                      DFT('N')
+     A            FAILCNT        9B 0       COLHDG('Failed Login Count')
+     A                                      DFT(0)
+     A            SESSIONID     50A         COLHDG('Session ID')
+     A            ROLEID        10A         COLHDG('Role ID')
+     A                                      DFT('USER')
+     A          K USERID

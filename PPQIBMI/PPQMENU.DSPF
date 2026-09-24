@@ -1,0 +1,25 @@
+     A**************************************************************
+     A* PPQMENU - Main Menu
+     A**************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      PRINT
+     A                                      CA03(03 'Exit')
+     A                                      INDARA
+     A          R MENU
+     A                                      OVERLAY
+     A                                  1  2'PPQ Protocol Management System'
+     A                                      DSPATR(HI)
+     A                                  1 70'PPQMENU'
+     A                                  2  2'Main Menu'
+     A                                  4  5'1. Protocol Search / Worklist'
+     A                                  5  5'2. New PPQ Protocol'
+     A                                  6  5'3. Master Data Maintenance'
+     A                                  7  5'4. Approval Worklist'
+     A                                  8  5'5. Reports'
+     A                                  9  5'6. Audit Trail Inquiry'
+     A                                 10  5'7. User / Security Admin'
+     A                                 13  2'Option . . . . .'
+     A            $OPTION        2A  B 13 20
+     A                                      DSPATR(UL)
+     A                                 22  2'F3=Exit   F12=Cancel'
+     A                                      COLOR(BLU)

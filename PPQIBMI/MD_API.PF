@@ -1,0 +1,14 @@
+     A***************************************************************
+     A* MD_API     - DDS Physical File for MD_API
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MD_APIR
+     A            API_CD        15A
+     A            API_NAME      80A
+     A                                      VARLEN
+     A            CAS_NO        20A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K API_CD

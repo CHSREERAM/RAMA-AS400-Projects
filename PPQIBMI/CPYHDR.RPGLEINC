@@ -1,0 +1,38 @@
+**FREE
+      //---------------------------------------------------------------
+      // CPYHDR - PPQ_HEADER data structure + shared status constants
+      //---------------------------------------------------------------
+      dcl-ds PpqHeader_t qualified template;
+        ProtocolId    int(20);
+        ProtocolNo    varchar(20);
+        RevisionNo    int(5);
+        VersionNo     int(5);
+        ProductCd     char(15);
+        ProductName   varchar(80);
+        Strength      varchar(40);
+        DosageForm    varchar(40);
+        Market        varchar(60);
+        BatchSize     packed(15:3);
+        BatchSizeUom  char(6);
+        ValidationTyp char(2);
+        Status        varchar(10);
+        CreatedBy     varchar(10);
+        CreatedTs     timestamp;
+        UpdatedBy     varchar(10);
+        UpdatedTs     timestamp;
+      end-ds;
+
+      // Workflow status constants - mirror CK_HDR_STATUS in PPQCORE03.sql
+      dcl-c STAT_DRAFT    'DRAFT';
+      dcl-c STAT_REVIEW   'REVIEW';
+      dcl-c STAT_APPROVED 'APPROVED';
+      dcl-c STAT_EXECUTED 'EXECUTED';
+      dcl-c STAT_CLOSED   'CLOSED';
+
+      dcl-c VTYPE_PROSPECTIVE 'PR';
+      dcl-c VTYPE_CONCURRENT  'CO';
+      dcl-c VTYPE_REVALIDATE  'RV';
+      dcl-c VTYPE_LEGACY      'LG';
+      dcl-c VTYPE_NEWPRODUCT  'NP';
+      dcl-c VTYPE_SITETRANS   'ST';
+

@@ -1,0 +1,12 @@
+     A***************************************************************
+     A* MD_UTILITY - DDS Physical File for MD_UTILITY
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MD_UTILITR
+     A            UTILITY_CD    10A
+     A            UTLTYNM       60A
+     A                                      VARLEN
+     A                                      ALIAS(UTILITY_NAME)
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K UTILITY_CD

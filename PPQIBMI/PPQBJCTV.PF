@@ -1,0 +1,21 @@
+     A***************************************************************
+     A* PPQBJCTV   - DDS Physical File for PPQ_OBJECTIVE
+     A* Module 4 - Objective/Scope/Reason for Validation
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQBJCTVR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            SECTION_CD     4A
+     A                                      VALUES('OBJ' 'SCP' 'RSN')
+     A            NARRATIVE   5000A
+     A                                      VARLEN
+     A            UPDATED_BY    10A
+     A                                      VARLEN
+     A            UPDATED_TS      Z
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K SECTION_CD
+     A***************************************************************
+     A* CONVERSION NOTES:
+     A*  - NARRATIVE: SQL CLOB not supported in DDS - substituted with 5000A VAR

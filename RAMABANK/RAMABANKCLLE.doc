@@ -1,0 +1,282 @@
+/*====================================================================*/
+/* RAMA BANK - AUTOPAY OVERNIGHT BATCH CONTROLLER                     */
+/* Calls BILLPAYPGM with *AUTOPAY mode to settle all AutoPay=Y        */
+/* registrations. Intended to be submitted via job scheduler every    */
+/* night at 23:30 (configured externally in WRKJOBSCDE).             */
+/*                                                                    */
+/* Fix vs original: BANKLIB replaced with SREERAMC1.                 */
+/*====================================================================*/
+             PGM
+
+             DCL        VAR(&CUSTID)  TYPE(*CHAR) LEN(20)
+             DCL        VAR(&ERRFLAG) TYPE(*LGL)  VALUE('0')
+
+             CHGVAR     VAR(&CUSTID)  VALUE('*AUTOPAY')
+
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                CHGVAR  VAR(&ERRFLAG) VALUE('1')
+                GOTO    CMDLBL(ERROUT)
+             ENDDO
+
+             CALL       PGM(SREERAMC1/BILLPAYPGM) PARM(&CUSTID)
+
+             GOTO       CMDLBL(ENDPGM)
+
+ ERROUT:
+             SNDPGMMSG  MSG('AUTOPAYCTL: AutoPay batch failed') +
+                           TOPGMQ(*SAME)
+
+ ENDPGM:
+             ENDPGM
+/*====================================================================*/
+/* RAMA BANK - BENEFICIARY COOLING PERIOD SCHEDULER                  */
+/* New CL controller. Submits BENEFCOOL every 5 minutes to promote   */
+/* beneficiaries from STATUS='P' to STATUS='A' once 30 minutes have  */
+/* elapsed since their addition. Without this, no beneficiary can     */
+/* ever be used in a fund transfer (FUNDTRPGM requires STATUS='A').  */
+/* Set up as a scheduler entry: ADDJOBSCDE JOB(RMABENEF)             */
+/*   CMD(CALL SREERAMC1/BENEFCOOLCL) FRQ(*INTERVAL) INTVL(5)        */
+/*====================================================================*/
+             PGM
+
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                SNDPGMMSG  MSG('BENEFCOOLCL: Cooling batch error') +
+                              TOPGMQ(*SAME)
+                RETURN
+             ENDDO
+
+             SBMJOB     CMD(CALL PGM(SREERAMC1/BENEFCOOL)) +
+                           JOBQ(QBATCH) +
+                           JOBNAME(RMABENCO) +
+                           USER(QSYS)
+
+             ENDPGM
+/*====================================================================*/
+/* RAMA BANK - CARD CONTROL DISPATCHER                                */
+/* Receives card number and action from CARDDTLPGM, dispatches to     */
+/* appropriate service. SETPINPGM now called as a standalone *PGM     */
+/* (with Main), not as a bound module, since it has a PEP and is      */
+/* compiled as a program object in SREERAMC1.                         */
+/*                                                                    */
+/* Fixes vs original:                                                 */
+/*  - BANKLIB replaced with SREERAMC1 throughout.                     */
+/*  - Third parameter (NEWPIN) removed; PIN is now generated          */
+/*    internally by SETPINPGM rather than passed in from the screen.  */
+/*  - CARD STATUS update call had no WHERE clause in the original     */
+/*    (was truncated). Now uses RUNSQL for targeted SQL.              */
+/*====================================================================*/
+             PGM        PARM(&CARDNUM &ACTION)
+             DCL        VAR(&CARDNUM) TYPE(*CHAR) LEN(16)
+             DCL        VAR(&ACTION)  TYPE(*CHAR) LEN(10)
+             DCL        VAR(&SQLSTMT) TYPE(*CHAR) LEN(200)
+             DCL        VAR(&ERRFLAG) TYPE(*LGL)  VALUE('0')
+
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                CHGVAR  VAR(&ERRFLAG) VALUE('1')
+                GOTO    CMDLBL(ERROUT)
+             ENDDO
+
+             IF         COND(&ACTION *EQ '*BLOCK') THEN(DO)
+                RUNSQL     SQL('UPDATE SREERAMC1.CARDMST +
+                                SET STATUS = ''B'' +
+                                WHERE CARDNUM = ''' *TCAT &CARDNUM *TCAT +
+                                '''') COMMIT(*NONE)
+             ENDDO
+
+             IF         COND(&ACTION *EQ '*UNBLOCK') THEN(DO)
+                RUNSQL     SQL('UPDATE SREERAMC1.CARDMST +
+                                SET STATUS = ''A'' +
+                                WHERE CARDNUM = ''' *TCAT &CARDNUM *TCAT +
+                                '''') COMMIT(*NONE)
+             ENDDO
+
+             IF         COND(&ACTION *EQ '*HOTLIST') THEN(DO)
+                RUNSQL     SQL('UPDATE SREERAMC1.CARDMST +
+                                SET STATUS = ''H'' +
+                                WHERE CARDNUM = ''' *TCAT &CARDNUM *TCAT +
+                                '''') COMMIT(*NONE)
+             ENDDO
+
+             IF         COND(&ACTION *EQ '*UPDATEPIN') THEN(DO)
+                CALL       PGM(SREERAMC1/SETPINPGM) PARM(&CARDNUM)
+             ENDDO
+
+             GOTO       CMDLBL(ENDPGM)
+
+ ERROUT:
+             SNDPGMMSG  MSG('CARDCTLCL: error processing +
+                            card action') TOPGMQ(*SAME)
+
+ ENDPGM:
+             ENDPGM
+/*====================================================================*/
+/* RAMA BANK - LOGOUT / SESSION TERMINATION                           */
+/* Clears the session data area in QTEMP and clears SESSIONID from   */
+/* USERMST so the token cannot be reused after logout.               */
+/*                                                                    */
+/* Fix vs original: BANKLIB replaced with SREERAMC1.                 */
+/*====================================================================*/
+             PGM
+
+             DCL        VAR(&SESDATA)   TYPE(*CHAR) LEN(70)
+             DCL        VAR(&USERID)    TYPE(*CHAR) LEN(20)
+             DCL        VAR(&ERRFLAG)   TYPE(*LGL)  VALUE('0')
+
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                CHGVAR  VAR(&ERRFLAG) VALUE('1')
+                GOTO    CMDLBL(ERROUT)
+             ENDDO
+
+             /* Read USERID from the session data area */
+             RTVDTAARA  DTAARA(QTEMP/RAMASES) RTNVAR(&SESDATA)
+             MONMSG     MSGID(CPF1015) /* not found - job already clean */
+
+             CHGVAR     VAR(&USERID) VALUE(%SST(&SESDATA 1 20))
+
+             /* Invalidate session token in USERMST */
+             RUNSQL     SQL('UPDATE SREERAMC1.USERMST +
+                             SET SESSIONID = NULL +
+                             WHERE USERID = ''' *TCAT %TRIM(&USERID) +
+                             *TCAT '''') COMMIT(*NONE)
+
+             /* Delete the session data area */
+             DLTDTAARA  DTAARA(QTEMP/RAMASES)
+             MONMSG     MSGID(CPF1015) /* not found is fine */
+
+             GOTO       CMDLBL(ENDPGM)
+
+ ERROUT:
+             SNDPGMMSG  MSG('LOGOUTCL: Session cleanup error') +
+                           TOPGMQ(*SAME)
+
+ ENDPGM:
+             ENDPGM
+/*====================================================================*/
+/* RAMA BANK - NEFT/RTGS BATCH SETTLEMENT SCHEDULER                  */
+/* Submits NEFTPGM every 30 minutes via SBMJOB to process pending     */
+/* TXNQUEUE rows (STATUS='P') created by FUNDTRPGM for interbank      */
+/* transfers. Run via STRJOBQ / job scheduler entry.                 */
+/*                                                                    */
+/* Fix vs original:                                                   */
+/*  - BANKLIB replaced with SREERAMC1.                                */
+/*  - Original called BANKLIB/NEFTPGM which never existed. NEFTPGM   */
+/*    has now been created in SREERAMC1 as part of this production    */
+/*    build.                                                          */
+/*====================================================================*/
+             PGM
+
+             DCL        VAR(&ERRFLAG) TYPE(*LGL) VALUE('0')
+
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                CHGVAR  VAR(&ERRFLAG) VALUE('1')
+                GOTO    CMDLBL(ERROUT)
+             ENDDO
+
+             SBMJOB     CMD(CALL PGM(SREERAMC1/NEFTPGM)) +
+                           JOBQ(QBATCH) +
+                           JOBNAME(RAMANEFT) +
+                           USER(QSYS)
+
+             GOTO       CMDLBL(ENDPGM)
+
+ ERROUT:
+             SNDPGMMSG  MSG('NEFTBATCH: Failed to submit NEFTPGM') +
+                           TOPGMQ(*SAME)
+
+ ENDPGM:
+             ENDPGM
+/*====================================================================*/
+/* RAMA BANK - REPORT BATCH CONTROLLER                                */
+/* Submits the RPTPGM report program (not yet built - placeholder)   */
+/* to QBATCH. Called from ADMINPGM option 4 (or directly via         */
+/* SBMJOB from a scheduler entry).                                   */
+/*                                                                    */
+/* Fix vs original:                                                   */
+/*  - BANKLIB replaced with SREERAMC1.                                */
+/*  - Hardcoded date '2026-02-22' replaced with CURRENT DATE (via    */
+/*    SQL scalar in the CMD parameter).                               */
+/*  - RPTPGM still does not exist in this codebase. The SBMJOB will  */
+/*    fail at runtime until RPTPGM is developed. This is clearly      */
+/*    marked here.                                                    */
+/*====================================================================*/
+             PGM
+
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                SNDPGMMSG  MSG('RPTCTLCL: Failed to submit batch report') +
+                              TOPGMQ(*SAME)
+                RETURN
+             ENDDO
+
+             /* NOTE: SREERAMC1/RPTPGM does not yet exist.            */
+             /* Remove this comment and the MONMSG above once RPTPGM  */
+             /* is developed and compiled into SREERAMC1.              */
+             SBMJOB     CMD(CALL PGM(SREERAMC1/RPTPGM)) +
+                           JOBQ(QBATCH) +
+                           JOBNAME(RAMARPT) +
+                           USER(QSYS)
+
+             ENDPGM
+/*====================================================================*/
+/* RAMA BANK - SESSION CONTROL                                        */
+/* Receives UserID and SessionID from LOGINPGM. Stores the session    */
+/* token in QTEMP/SESSION data area for downstream use.              */
+/* SESTIMCL sets a session timeout via SBMJOB after this runs.       */
+/*                                                                    */
+/* Fix vs original: BANKLIB replaced with SREERAMC1 throughout.      */
+/*====================================================================*/
+             PGM        PARM(&USERID &SESSIONID)
+
+             DCL        VAR(&USERID)    TYPE(*CHAR) LEN(20)
+             DCL        VAR(&SESSIONID) TYPE(*CHAR) LEN(50)
+             DCL        VAR(&ERRFLAG)   TYPE(*LGL)  VALUE('0')
+
+             MONMSG     MSGID(CPF0000) EXEC(DO)
+                CHGVAR  VAR(&ERRFLAG) VALUE('1')
+                GOTO    CMDLBL(ERROUT)
+             ENDDO
+
+             /* Store session context in QTEMP for the job's lifetime */
+             CRTDTAARA  DTAARA(QTEMP/RAMASES) TYPE(*CHAR) LEN(70) +
+                           VALUE(' ')
+             MONMSG     MSGID(CPF1023) /* already exists - ignore */
+
+             CHGDTAARA  DTAARA(QTEMP/RAMASES) VALUE(&USERID *TCAT +
+                           *BLANK *TCAT &SESSIONID)
+
+             /* Start session timeout monitor */
+             SBMJOB     CMD(CALL PGM(SREERAMC1/SESTIMCL) +
+                              PARM(&USERID &SESSIONID)) +
+                           JOBQ(QBATCH) JOBNAME(RMASESTO) USER(QSYS)
+
+             GOTO       CMDLBL(ENDPGM)
+
+ ERROUT:
+             SNDPGMMSG  MSG('SESSCTL: session creation failed') +
+                           TOPGMQ(*SAME)
+
+ ENDPGM:
+             ENDPGM
+/*====================================================================*/
+/* RAMA BANK - SESSION TIMEOUT MONITOR                                */
+/* Submitted as a background SBMJOB by SESSCTL. Waits 15 minutes     */
+/* then invalidates the session in USERMST if still active.          */
+/*====================================================================*/
+             PGM        PARM(&USERID &SESSIONID)
+
+             DCL        VAR(&USERID)    TYPE(*CHAR) LEN(20)
+             DCL        VAR(&SESSIONID) TYPE(*CHAR) LEN(50)
+
+             MONMSG     MSGID(CPF0000)
+
+             /* Wait 15 minutes (900 seconds) then invalidate */
+             DLYJOB     DLY(900)
+
+             RUNSQL     SQL('UPDATE SREERAMC1.USERMST +
+                             SET SESSIONID = NULL +
+                             WHERE USERID = ''' *TCAT %TRIM(&USERID) +
+                             *TCAT ''' AND SESSIONID = ''' +
+                             *TCAT %TRIM(&SESSIONID) *TCAT +
+                             '''') COMMIT(*NONE)
+
+             ENDPGM
+

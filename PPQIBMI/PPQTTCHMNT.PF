@@ -1,0 +1,31 @@
+     A***************************************************************
+     A* PPQTTCHMNT - DDS Physical File for PPQ_ATTACHMENT
+     A* Module 24 - Supporting Documents
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQTTCHMNR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            ATTACH_NO      4B 0
+     A            DOC_NAME     100A
+     A                                      VARLEN
+     A            DOCVERSION    10A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(DOC_VERSION)
+     A            DCRVSN        10A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(DOC_REVISION)
+     A            APPRSTATUS    10A
+     A                                      ALIAS(APPR_STATUS)
+     A            IFS_PATH     500A
+     A                                      VARLEN
+     A            UPLOADEDBY    10A
+     A                                      VARLEN
+     A                                      ALIAS(UPLOADED_BY)
+     A            UPLOADEDTS      Z
+     A                                      ALIAS(UPLOADED_TS)
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K ATTACH_NO

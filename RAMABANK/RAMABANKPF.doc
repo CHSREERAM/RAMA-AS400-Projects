@@ -1,0 +1,296 @@
+     A* ==========================================================
+     A* RAMA BANK - Account Master File
+     A* P = Packed ( for math operations and database fields)
+     A* Instead of using a full byte for each digit, it splits
+     A* -every byte in half and packs two digits into one byte.
+     A* 1234 is packed into bytes as 01 23 4C (C means positive)
+     A*  01 23 4D foe -1234 (D means negative)
+     A* S= Zoned stores numbers exactly like readable text,
+     A* using one full byte for each digit.F1 F2 F3 F4 (where F is
+     A* the standard zone filler) F1 F2 F3 D4 (D is the sign) for -1234
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R ACCTMREC
+     A            ACCTNUM       20A         COLHDG('Account Number')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            BRANCH        30A         COLHDG('Branch Name')
+     A            IFSC          11A         COLHDG('IFSC Code')
+     A            MICR           9A         COLHDG('MICR Code')
+     A            BALANCE       15P 2       COLHDG('Current Balance')
+     A                                      DFT(0.00)
+     A            ACCTTYPE       3A         COLHDG('Account Type' +
+     A                                             '(SB/CA/etc)')
+     A                                      DFT('SB')
+     A            STATUS         1A         COLHDG('Account Status' +
+     A                                             '(A/C/B)')
+     A                                      DFT('A')
+     A          K ACCTNUM
+
+
+
+
+     A* ==========================================================
+     A* RAMA BANK - Audit Log File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R AUDITREC
+     A            LOGID          9B 0       COLHDG('Log ID')
+     A            LOGTS           Z         COLHDG('Log Timestamp')
+     A            USERID        20A         COLHDG('User ID')
+     A            ACTION        50A         COLHDG('Action')
+     A            DETAILS      500A         COLHDG('Details')
+     A          K LOGID
+     A* ==========================================================
+     A* RAMA BANK - Beneficiary Master File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R BENFREC
+     A            BENEFID        9B 0       COLHDG('Beneficiary ID')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            BENEFNAME    100A         COLHDG('Beneficiary Name')
+     A            BENEFACCT     20A         COLHDG('Beneficiary Account')
+     A            BENEIFSC      11A         COLHDG('Beneficiary IFSC')
+     A            STATUS         1A         COLHDG('Status (P/A/D)')
+     A                                      DFT('P')
+     A            ADDTIME         Z         COLHDG('Add Timestamp')
+     A          K BENEFID
+     A* ==========================================================
+     A* RAMA BANK - Biller Master File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R BILLMREC
+     A            BILLERID      20A         COLHDG('Biller ID')
+     A            BILLERNAME   100A         COLHDG('Biller Name')
+     A            CATEGORY      50A         COLHDG('Category')
+     A          K BILLERID
+     A* ==========================================================
+     A* RAMA BANK - Biller Registration File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R BILLRREC
+     A            REGID          9B 0       COLHDG('Registration ID')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            ACCTNUM       20A         COLHDG('Account Number')
+     A            BILLERID      20A         COLHDG('Biller ID')
+     A            CONN_NUM      50A         COLHDG('Consumer Number')
+     A            AUTOPAY        1A         COLHDG('AutoPay Flag (Y/N)')
+     A                                      DFT('N')
+     A          K REGID
+     A* ==========================================================
+     A* RAMA BANK - Card Master File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R CARDMREC
+     A            CARDNUM       16A         COLHDG('Card Number')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            ACCTNUM       20A         COLHDG('Account Number')
+     A            CARDTYPE      10A         COLHDG('Card Type')
+     A            NETWORK       20A         COLHDG('Network')
+     A            EXPIRY         5A         COLHDG('Expiry MM/YY')
+     A            STATUS         1A         COLHDG('Status (A/B/H)')
+     A                                      DFT('A')
+     A            PINHASH       64A         COLHDG('PIN Hash')
+     A            INTL_FLAG      1A         COLHDG('Intl Flag (Y/N)')
+     A                                      DFT('N')
+     A            ONLN_FLAG      1A         COLHDG('Online Flag (Y/N)')
+     A                                      DFT('N')
+     A            CNTL_FLAG      1A         COLHDG('Contactless Flag' +
+     A                                              '(Y/N)')
+     A                                      DFT('N')
+     A          K CARDNUM
+     A* ==========================================================
+     A* RAMA BANK - Card Limit File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R CRDLMREC
+     A            CARDNUM       16A         COLHDG('Card Number')
+     A            DAILYLIMIT    15P 2       COLHDG('Daily Limit')
+     A                                      DFT(0.00)
+     A            USEDLIMIT     15P 2       COLHDG('Used Limit')
+     A                                      DFT(0.00)
+     A            LASTRESET       L         COLHDG('Last Reset Date')
+     A          K CARDNUM
+     A* ==========================================================
+     A* RAMA BANK - Customer Master File
+     A* BUG-02 FIX: Renamed KYC_STATUS -> KYCSTS to match all
+     A* program references (PROFILEPGM, adminpgm, DASHPGM etc).
+     A* BUG-03 FIX: Renamed PAN -> PANNO to match adminpgm's KYC
+     A* subfile SELECT which uses PANNO.
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R CUSTMREC
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            FULLNAME      50A         COLHDG('Full Name')
+     A            PANNO         10A         COLHDG('PAN Number')
+     A            AADHAAR       12A         COLHDG('Aadhaar Number')
+     A            MOBILE        15A         COLHDG('Mobile Number')
+     A            EMAIL         50A         COLHDG('Email Address')
+     A            ADDRESS       60A         COLHDG('Physical Address')
+     A            KYCSTS         1A         COLHDG('KYC Status (P/A/R)')
+     A                                      DFT('P')
+     A          K CUSTID
+     A* ==========================================================
+     A* RAMA BANK - EMI Schedule File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R EMISREC
+     A            EMIID          9B 0       COLHDG('EMI ID')
+     A            LOANACCT      20A         COLHDG('Loan Account Number')
+     A            DUEDATE         L         COLHDG('Due Date')
+     A            EMI_AMT       15P 2       COLHDG('EMI Amount')
+     A            PRIN_AMT      15P 2       COLHDG('Principal Amount')
+     A            INT_AMT       15P 2       COLHDG('Interest Amount')
+     A            STATUS        10A         COLHDG('Status')
+     A                                      DFT('PENDING')
+     A          K EMIID
+     A* ==========================================================
+     A* RAMA BANK - Fixed Deposit Master File (FD-level terms)
+     A* Added because ACCTMST has no columns for interest rate,
+     A* term, or maturity date, which FDDTLPGM requires and
+     A* previously hardcoded for every customer.
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R FDMREC
+     A            FDACCT        20A         COLHDG('FD Account Number')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            LINKEDSB      20A         COLHDG('Linked Savings' +
+     A                                              'Account')
+     A            PRINAMT       15P 2       COLHDG('Principal Amount')
+     A            INTRATE        5P 2       COLHDG('Annual Interest' +
+     A                                              'Rate %')
+     A            TERMMNTH       4P 0       COLHDG('Term in Months')
+     A            STARTDATE       L         COLHDG('FD Start Date')
+     A            MATDATE         L         COLHDG('Maturity Date')
+     A            MATAMT        15P 2       COLHDG('Projected Maturity' +
+     A                                              'Amount')
+     A            FDSTS          1A         COLHDG('Status (A/C)')
+     A                                      DFT('A')
+     A          K FDACCT
+     A* ==========================================================
+     A* RAMA BANK - IFSC Lookup File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R IFSCREC
+     A            IFSC          11A         COLHDG('IFSC Code')
+     A            BANKNAME     100A         COLHDG('Bank Name')
+     A            BRANCHNAME   100A         COLHDG('Branch Name')
+     A            CITY         100A         COLHDG('City')
+     A          K IFSC
+     A* ==========================================================
+     A* RAMA BANK - Loan Master File (loan-level terms)
+     A* Added because EMISCHDULE only stores per-instalment data;
+     A* there was no table anywhere holding the loan's original
+     A* principal, interest rate, or term. ACCTMST.BALANCE is used
+     A* as the running outstanding balance for the loan account.
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R LOANMREC
+     A            LOANACCT      20A         COLHDG('Loan Account Number')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            PRINAMT       15P 2       COLHDG('Original Principal')
+     A            INTRATE        5P 2       COLHDG('Annual Interest Rate' +
+     A                                              '%')
+     A            TERMMNTH       4P 0       COLHDG('Term in Months')
+     A            STARTDATE       L         COLHDG('Loan Start Date')
+     A            LOANSTS        1A         COLHDG('Status (A/C)')
+     A                                      DFT('A')
+     A          K LOANACCT
+     A* ==========================================================
+     A* RAMA BANK - Nominee Master File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R NOMMREC
+     A            NOMID          9B 0       COLHDG('Nominee ID')
+     A            ACCTNUM       20A         COLHDG('Account Number')
+     A            NOMNAME      100A         COLHDG('Nominee Name')
+     A            RELATION      50A         COLHDG('Relationship')
+     A            DOB             L         COLHDG('Date of Birth')
+     A          K NOMID
+     A* ==========================================================
+     A* RAMA BANK - OTP Store (transient one-time-passcodes)
+     A* New table. Needed because OTPVERPGM had no real backing
+     A* store and FUNDTRPGM/CARDDTLPGM used a hardcoded '123456'.
+     A* A row is inserted when an OTP is generated and consumed
+     A* (deleted) on successful verification or expiry.
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R OTPSREC
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            PURPOSE       10A         COLHDG('Purpose' +
+     A                                             '(FUNDTR/PIN/etc)')
+     A            OTPHASH       64A         COLHDG('Hash of OTP value')
+     A            GENTIME         Z         COLHDG('Generated Timestamp')
+     A            EXPTIME         Z         COLHDG('Expiry Timestamp')
+     A            ATTEMPTS       3B 0       COLHDG('Verify Attempts')
+     A                                      DFT(0)
+     A          K CUSTID
+     A          K PURPOSE
+     A* ==========================================================
+     A* RAMA BANK - Password History File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R PWDHREC
+     A            PHID           9B 0       COLHDG('History ID')
+     A            USERID        20A         COLHDG('User ID')
+     A            PWDHASH       64A         COLHDG('Password Hash')
+     A            CHGDATE         Z         COLHDG('Change Timestamp')
+     A          K PHID
+     A* ==========================================================
+     A* RAMA BANK - Transaction History File
+     A* B = Binary, L = Date, T = Time, P = Packed Decimal, A = Alphanumeric
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R TXNHREC
+     A            TXNID          9B 0       COLHDG('Transaction ID')
+     A            TXNDATE         L         COLHDG('Transaction Date')
+     A            TXNTIME         T         COLHDG('Transaction Time')
+     A            ACCTNUM       20A         COLHDG('Account Number')
+     A            TXNTYPE        2A         COLHDG('Transaction Type' +
+     A                                              '(CR/DR)')
+     A            AMOUNT        15P 2       COLHDG('Transaction' +
+     A                                             ' Amount')
+     A            REFNUM        50A         COLHDG('Reference Number')
+     A            BALAFTER      15P 2       COLHDG('Balance After')
+     A            STATUS         1A         COLHDG('Status (S/F)')
+     A                                      DFT('S')
+     A          K TXNID
+     A* ==========================================================
+     A* RAMA BANK - Transaction Queue File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R TXNQREC
+     A            QID            9B 0       COLHDG('Queue ID')
+     A            FROMACCT      20A         COLHDG('From Account')
+     A            TOACCT        20A         COLHDG('To Account')
+     A            TOIFSC        11A         COLHDG('To IFSC')
+     A            AMOUNT        15P 2       COLHDG('Amount')
+     A            QTIMESTAMP      Z         COLHDG('Queue Timestamp')
+     A            STATUS         1A         COLHDG('Status (P/F)')
+     A                                      DFT('P')
+     A            NWTYPE        10A         COLHDG('Network Type')
+     A          K QID
+     A* ==========================================================
+     A* RAMA BANK - Update Request File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R UPDTREC
+     A            REQID          9B 0       COLHDG('Request ID')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            FIELDNAME     50A         COLHDG('Field Name')
+     A            OLDVAL       200A         COLHDG('Old Value')
+     A            NEWVAL       200A         COLHDG('New Value')
+     A            REQDATE         L         COLHDG('Request Date')
+     A            STATUS         1A         COLHDG('Status (P/A/R)')
+     A                                      DFT('P')
+     A          K REQID
+     A* ==========================================================
+     A* RAMA BANK - User Master File
+     A* BUG-01 FIX: Added CUSTID column - DASHPGM and downstream
+     A* programs join USERMST to CUSTMST via this column. Without
+     A* it, every login successfully authenticated but then abended
+     A* on the dashboard lookup (SQL0206 column not found).
+     A* A = CHARECTER, B = BINARY, D = DECIMAL, I = INTEGER,
+     A* P = PACKED DECIMAL
+     A* Binary data is a type of data that only has two possible values.
+     A* These values are often represented by the numbers 0 and 1, or
+     A* the words 

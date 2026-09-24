@@ -1,0 +1,28 @@
+     A***************************************************************
+     A* PPQPPRVL   - DDS Physical File for PPQ_APPROVAL
+     A* Module 25 - Approval Workflow
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQAPRVLR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            APPR_SEQ       4B 0
+     A            ROLE_CD       10A
+     A            USER_ID       10A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            ESIG_ID       18P 0
+     A                                      ALWNULL
+     A            APPRSTATUS    10A
+     A                                      ALIAS(APPR_STATUS)
+     A                                      VALUES('PENDING' 'APPROVED'        +
+     A                                      'REJECTED')
+     A            APPR_DT         Z
+     A                                      ALWNULL
+     A            APPRMNNG     100A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(APPR_MEANING)
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K APPR_SEQ

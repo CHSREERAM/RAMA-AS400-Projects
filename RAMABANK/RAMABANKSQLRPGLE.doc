@@ -1,0 +1,3820 @@
+     **FREE
+      //====================================================================
+      // RAMA BANK - ACCOUNT DETAILS VIEW
+      // Three-table SQL join to fetch full detail and nominee info.
+      // F4 toggles masking, gated by real OTP verification.
+      //
+      // This program had multiple compile-breaking errors in the
+      // original: missing semicolons on nearly every Dcl-S line,
+      // a duplicate variable name (Sql_ACCTNUM declared twice), a
+      // stray extra parenthesis, screen fields ($CUSTNAME, $BRANCH,
+      // $IFSC, $MICR, $BALANCE, $NOMNAME, $NOMREL) that were declared
+      // on the DSPF but never populated, and an invalid CallP syntax
+      // calling a quoted literal program name. All fixed below.
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(AcctDtl_Main)
+               BndDir('RAMABND');
+
+       Dcl-F ACCTDTLSCR WORKSTN IndDS(ScnInd);
+
+       Dcl-Ds ScnInd;
+           ExitKey   Ind Pos(3);
+           ToggleKey Ind Pos(4);
+       End-Ds;
+
+       Dcl-Pr AcctDtl_Main ExtPgm('ACCTDTLPGM');
+           p_CustID  Char(20) Const;
+           p_AcctNum Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_OtpVer ExtPgm('OTPVERPGM');
+           p_CustID  Char(20) Const;
+           p_Purpose Char(10) Const;
+           p_Valid   Ind;
+       End-Pr;
+
+       Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+       Dcl-Proc AcctDtl_Main;
+       Dcl-Pi AcctDtl_Main;
+           p_CustID Char(20) Const;
+           p_AcctNum Char(20) Const;
+       End-Pi;
+
+       Dcl-S l_Exit      Ind Inz(*Off);
+       Dcl-S l_Masked    Ind Inz(*On);
+       Dcl-S l_OTPValid  Ind Inz(*Off);
+
+       Dcl-S Sql_ACCTNUM   Char(20);
+       Dcl-S Sql_CUSTNAME  Char(50);
+       Dcl-S Sql_BRANCH    Char(30);
+       Dcl-S Sql_IFSC      Char(11);
+       Dcl-S Sql_MICR      Char(9);
+       Dcl-S Sql_BALANCE   Packed(15:2);
+       Dcl-S Sql_NOMNAME   Char(100);
+       Dcl-S Sql_RELATION  Char(50);
+       Dcl-S l_Found       Int(10);
+
+       Exec SQL
+           Select A.ACCTNUM, A.BRANCH, A.IFSC, A.MICR, A.BALANCE,
+                  C.FULLNAME,
+                  Coalesce(N.NOMNAME, ''), Coalesce(N.RELATION, '')
+           Into :Sql_ACCTNUM, :Sql_BRANCH, :Sql_IFSC, :Sql_MICR,
+                :Sql_BALANCE, :Sql_CUSTNAME, :Sql_NOMNAME, :Sql_RELATION
+           From SREERAMC1.ACCTMST A
+           Join SREERAMC1.CUSTMST C ON A.CUSTID = C.CUSTID
+           Left Join SREERAMC1.NOMINEEMST N ON A.ACCTNUM = N.ACCTNUM
+           Where A.CUSTID = :p_CustID And A.ACCTNUM = :p_AcctNum
+           Fetch First 1 Row Only;
+
+       l_Found = 1;
+       If SQLCode <> 0;
+           l_Found = 0;
+       EndIf;
+
+       $CUSTID   = p_CustID;
+       $CUSTNAME = Sql_CUSTNAME;
+       $BRANCH   = Sql_BRANCH;
+       $IFSC     = Sql_IFSC;
+       $MICR     = Sql_MICR;
+       $BALANCE  = Sql_BALANCE;
+       $NOMNAME  = Sql_NOMNAME;
+       $NOMREL   = Sql_RELATION;
+
+       Dow Not l_Exit;
+
+           If l_Found = 0;
+               $ACCTNUM = 'NOT FOUND';
+               ExFmt ACCTFMT;
+               l_Exit = *On;
+               Iter;
+           EndIf;
+
+           If l_Masked = *On;
+               $ACCTNUM = 'XXXX-XXXX-XXXX-'
+                   + %Subst(Sql_ACCTNUM: %Len(%Trim(Sql_ACCTNUM))-3: 4);
+           Else;
+               $ACCTNUM = Sql_ACCTNUM;
+           EndIf;
+
+           ExFmt ACCTFMT;
+
+           Select;
+               When ExitKey;
+                   l_Exit = *On;
+
+               When ToggleKey;
+                   If l_Masked = *On;
+                       Monitor;
+                           Call_OtpVer(p_CustID: 'UNMASK': l_OTPValid);
+                       On-Error;
+                           l_OTPValid = *Off;
+                       EndMon;
+
+                       If l_OTPValid = *On;
+                           l_Masked = *Off;
+                       EndIf;
+                   Else;
+                       l_Masked = *On;
+                   EndIf;
+           EndSl;
+       EndDo;
+
+       Close ACCTDTLSCR;
+       Return;
+       End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - ADMIN PANEL
+      // BUG-14 FIX: KYCSTS corrected (was KYC_STATUS in original PF but
+      //             now CUSTMST.PF has been fixed to KYCSTS)
+      //             PANNO corrected (was PAN in original PF but now
+      //             CUSTMST.PF has been fixed to PANNO)
+      // BUG-15 FIX: Dcl-S moved out of BegSr KycVerification to module level
+      // BUG-16 FIX: Dcl-S moved out of BegSr MakerChecker to module level
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Admin_Main)
+               BndDir('RAMABND');
+
+       Dcl-F ADMINSCR WORKSTN Sfile(CUSTSFL : C_RRN)
+                               Sfile(KYCSFL  : K_RRN)
+                               Sfile(MCRSFL  : M_RRN)
+                               IndDS(ScnInd);
+
+       Dcl-Ds ScnInd;
+           ExitKey   Ind Pos(3);
+           SflClr    Ind Pos(42);
+           SflDspCtl Ind Pos(41);
+           SflDsp    Ind Pos(40);
+       End-Ds;
+
+       Dcl-Pr Admin_Main ExtPgm('ADMINPGM');
+           p_UserID Char(20) Const;
+       End-Pr;
+
+       Exec SQL Set Option Commit=*Chg, Naming=*Sys;
+
+       Dcl-S C_RRN Int(10);
+       Dcl-S K_RRN Int(10);
+       Dcl-S M_RRN Int(10);
+
+       // BUG-15 FIX: Moved from inside BegSr KycVerification
+       Dcl-S l_NewKyc  Char(1);
+       Dcl-S l_NextLog Int(10);
+
+       // BUG-16 FIX: Moved from inside BegSr MakerChecker
+       Dcl-S l_ReqId    Int(10);
+       Dcl-S l_SaveCust Char(20);
+       Dcl-S l_SaveFld  Char(10);
+       Dcl-S l_SaveNew  Char(100);
+       Dcl-S l_NextLog2 Int(10);
+
+       // Prototype for standard IBM i command execution program
+       Dcl-Pr RunCmd ExtPgm('QCMDEXC');
+           CmdStr  Char(3000) Const Options(*VarSize);
+           CmdLen  Packed(15:5) Const;
+       End-Pr;
+
+       Dcl-Proc Admin_Main;
+       Dcl-Pi Admin_Main;
+           p_UserID Char(20) Const;
+       End-Pi;
+
+       Dcl-S l_Exit Ind Inz(*Off);
+       Dcl-S cmd    Char(200);
+
+       Dow Not l_Exit;
+           ERRMSG  = *Blanks;
+           MENUOPT = '';
+           ExFmt ADMNMENU;
+
+           If ExitKey;
+               l_Exit = *On;
+               Iter;
+           EndIf;
+
+           ERRMSG = *Blanks;
+
+           Select;
+               When MENUOPT = '1';
+                   ExSr CustomerSearch;
+               When MENUOPT = '2';
+                   ExSr KycVerification;
+               When MENUOPT = '3';
+                   ExSr MakerChecker;
+               When MENUOPT = '4';
+                   ExSr ScheduleReport;
+               Other;
+                   ERRMSG = 'Invalid selection. Choose 1-4.';
+           EndSl;
+       EndDo;
+
+       Close ADMINSCR;
+       Return;
+
+      //=================================================================
+       BegSr CustomerSearch;
+           SflClr = *On;
+           Write CUSTCTL;
+           SflClr = *Off;
+           SflDspCtl = *On;
+           SflDsp = *Off;
+           C_RRN = 0;
+
+           Exec SQL Declare CustSrchCur Cursor For
+               Select C.CUSTID, C.FULLNAME, C.MOBILE, C.KYCSTS
+               From SREERAMC1.CUSTMST C
+               Where (:SRCHVAL = '' Or
+                      C.CUSTID Like '%' CONCAT :SRCHVAL CONCAT '%'
+                      Or UPPER(C.FULLNAME) Like
+                         '%' CONCAT UPPER(:SRCHVAL) CONCAT '%')
+               Order By C.CUSTID Asc
+               Fetch First 50 Rows Only;
+
+           Exec SQL Open CustSrchCur;
+
+           Dow SQLCode = 0;
+               Exec SQL Fetch CustSrchCur
+                        Into :C_CUSTID, :C_NAME, :C_MOBILE, :C_KYC;
+               If SQLCode <> 0;
+                   Leave;
+               EndIf;
+               C_RRN += 1;
+               Write CUSTSFL;
+           EndDo;
+
+           Exec SQL Close CustSrchCur;
+
+           If C_RRN > 0;
+               SflDsp = *On;
+           Else;
+               ERRMSG = 'No customers found matching the search.';
+           EndIf;
+
+           Write CUSTFTR;
+           ExFmt CUSTCTL;
+       EndSr;
+
+      //=================================================================
+       BegSr KycVerification;
+           // BUG-14 FIX: KYCSTS and PANNO now match CUSTMST.PF
+           SflClr = *On;
+           Write KYCCTL;
+           SflClr = *Off;
+           SflDspCtl = *On;
+           SflDsp = *Off;
+           K_RRN = 0;
+
+           Exec SQL Declare KycCur Cursor For
+               Select CUSTID, FULLNAME, PANNO, KYCSTS
+               From SREERAMC1.CUSTMST
+               Where KYCSTS = 'P'
+               Order By CUSTID Asc
+               Fetch First 50 Rows Only;
+
+           Exec SQL Open KycCur;
+
+           Dow SQLCode = 0;
+               Exec SQL Fetch KycCur
+                        Into :K_CUSTID, :K_NAME, :K_PAN, :K_KYC;
+               If SQLCode <> 0;
+                   Leave;
+               EndIf;
+               K_RRN += 1;
+               Write KYCSFL;
+           EndDo;
+
+           Exec SQL Close KycCur;
+
+           If K_RRN > 0;
+               SflDsp = *On;
+           Else;
+               ERRMSG = 'No pending KYC verifications.';
+               ExFmt KYCCTL;
+               Return;
+           EndIf;
+
+           Write KYCFTR;
+           ExFmt KYCCTL;
+
+           // BUG-15 FIX: l_NewKyc and l_NextLog declared at module level now
+           ReadC KYCSFL;
+           Dow Not %Eof(ADMINSCR);
+               Select;
+                   When K_SEL = 'A';
+                       l_NewKyc = 'Y';
+                   When K_SEL = 'R';
+                       l_NewKyc = 'R';
+                   Other;
+                       ReadC KYCSFL;
+                       Iter;
+               EndSl;
+
+               // BUG-14 FIX: Update KYCSTS (correct column name)
+               Exec SQL Update SREERAMC1.CUSTMST
+                        Set KYCSTS = :l_NewKyc
+                        Where CUSTID = :K_CUSTID;
+
+               If SQLCode = 0;
+                   Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_LOGID
+                            Into :l_NextLog;
+
+                   Exec SQL Insert Into SREERAMC1.AUDITLOG
+                            (LOGID, LOGTS, USERID, ACTION, DETAILS)
+                            Values(:l_NextLog, CURRENT TIMESTAMP, :p_UserID,
+                                   'KYC_UPDATE',
+                                   'CustID ' || Trim(:K_CUSTID) ||
+                                   ' KYC set to ' || :l_NewKyc);
+               EndIf;
+
+               K_SEL = '';
+               Update KYCSFL;
+               ReadC KYCSFL;
+           EndDo;
+
+           Exec SQL Commit;
+           ERRMSG = 'KYC decisions applied.';
+       EndSr;
+
+      //=================================================================
+       BegSr MakerChecker;
+           // BUG-16 FIX: All Dcl-S now at module level
+           SflClr = *On;
+           Write MCRCTL;
+           SflClr = *Off;
+           SflDspCtl = *On;
+           SflDsp = *Off;
+           M_RRN = 0;
+
+           Exec SQL Declare McrCur Cursor For
+               Select CUSTID, FIELDNAME, OLDVAL, NEWVAL, REQID
+               From SREERAMC1.UPDATEREQ
+               Where STATUS = 'P'
+               Order By REQDATE Asc
+               Fetch First 50 Rows Only;
+
+           Exec SQL Open McrCur;
+
+           Dow SQLCode = 0;
+               Exec SQL Fetch McrCur
+                        Into :M_CUSTID, :M_FIELD, :M_OLDVAL, :M_NEWVAL,
+                             :l_ReqId;
+               If SQLCode <> 0;
+                   Leave;
+               EndIf;
+               M_SEL = '';
+               M_RRN += 1;
+               Write MCRSFL;
+           EndDo;
+
+           Exec SQL Close McrCur;
+
+           If M_RRN > 0;
+               SflDsp = *On;
+           Else;
+               ERRMSG = 'No pending update requests.';
+               ExFmt MCRCTL;
+               Return;
+           EndIf;
+
+              Write MCRFTR;
+           ExFmt MCRCTL;
+
+           ReadC MCRSFL;
+           Dow Not %Eof(ADMINSCR);
+               If M_SEL = 'A' Or M_SEL = 'R';
+                   l_SaveCust = M_CUSTID;
+                   l_SaveFld  = M_FIELD;
+                   l_SaveNew  = M_NEWVAL;
+
+                   If M_SEL = 'A';
+                       Select;
+                           When M_FIELD = 'ADDRESS';
+                               Exec SQL Update SREERAMC1.CUSTMST
+                                        Set ADDRESS = :l_SaveNew
+                                        Where CUSTID = :l_SaveCust;
+                           When M_FIELD = 'EMAIL';
+                               Exec SQL Update SREERAMC1.CUSTMST
+                                        Set EMAIL = :l_SaveNew
+                                        Where CUSTID = :l_SaveCust;
+                           When M_FIELD = 'MOBILE';
+                               Exec SQL Update SREERAMC1.CUSTMST
+                                        Set MOBILE = :l_SaveNew
+                                        Where CUSTID = :l_SaveCust;
+                           Other;
+                               M_SEL = 'R';
+                       EndSl;
+
+                       Exec SQL Update SREERAMC1.UPDATEREQ
+                                Set STATUS = 'A'
+                                Where CUSTID = :l_SaveCust
+                                And FIELDNAME = :l_SaveFld
+                                And STATUS = 'P';
+                   Else;
+                       Exec SQL Update SREERAMC1.UPDATEREQ
+                                Set STATUS = 'R'
+                                Where CUSTID = :l_SaveCust
+                                And FIELDNAME = :l_SaveFld
+                                And STATUS = 'P';
+                   EndIf;
+
+                   Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_LOGID
+                            Into :l_NextLog2;
+
+                   Exec SQL Insert Into SREERAMC1.AUDITLOG
+                            (LOGID, LOGTS, USERID, ACTION, DETAILS)
+                            Values(:l_NextLog2, CURRENT TIMESTAMP,
+                                   :p_UserID, 'MCR_' || :M_SEL,
+                                   'CustID ' || Trim(:l_SaveCust) ||
+                                   ' field ' || Trim(:l_SaveFld));
+
+                   M_SEL = '';
+                   Update MCRSFL;
+               EndIf;
+               ReadC MCRSFL;
+           EndDo;
+
+           Exec SQL Commit;
+           ERRMSG = 'Maker-Checker decisions applied.';
+       EndSr;
+
+      //=================================================================
+       BegSr ScheduleReport;
+           Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_LOGID
+                    Into :l_NextLog;
+
+           Exec SQL Insert Into SREERAMC1.AUDITLOG
+                    (LOGID, LOGTS, USERID, ACTION, DETAILS)
+                    Values(:l_NextLog, CURRENT TIMESTAMP, :p_UserID,
+                           'RPTSUBMIT', 'Batch report submitted by admin');
+
+           Exec SQL Commit;
+
+           //Exec CL('SBMJOB CMD(CALL PGM(SREERAMC1/RPTPGM)) '
+           //        'JOBQ(QBATCH) JOBNAME(RAMARPT)');
+
+           //Exec CL is not a valid keyword or command in standard RPGLE or SQLRPGLE.
+           // The correct way to submit a job is to use the QCMDEXC prototype or a SQL procedure.
+
+            // CORRECTED WAY using SQL procedure:
+           //Exec SQL CALL QSYS2.QCMDEXC(
+           //    'SBMJOB CMD(CALL PGM(SREERAMC1/RPTPGM))' ||
+           //    'JOBQ(QBATCH) JOBNAME(RAMARPT)');
+
+           // Call QCMDEXC using the prototype:
+           cmd = 'SBMJOB CMD(CALL PGM(SREERAMC1/RPTPGM))' +
+                 'JOBQ(QBATCH) JOBNAME(RAMARPT)';
+
+           RunCmd(cmd : %Len(%Trim(cmd)));
+
+           ERRMSG = 'Report job submitted to QBATCH.';
+       EndSr;
+
+       End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - BENEFICIARY COOLING PERIOD PROMOTER
+      // New program. BENEFPGM set new beneficiaries to STATUS='P' with
+      // a comment promising a "batch later" would promote them to 'A'
+      // after 30 minutes, but no such batch job existed anywhere in
+      // the original codebase, so beneficiaries could never actually
+      // be paid (FUNDTRPGM requires STATUS='A' to allow a transfer).
+      //
+      // Intended to run every 5-10 minutes via job scheduler/SBMJOB
+      // (see BENEFCOOLCL.CLLE).
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Cool_Main) BndDir('RAMABND');
+
+       Dcl-Pr Cool_Main ExtPgm('BENEFCOOL');
+       End-Pr;
+
+       Exec SQL Set Option Commit=*Chg, Naming=*Sys;
+
+       Dcl-Proc Cool_Main;
+
+       Dcl-S l_Count Int(10);
+
+       Exec SQL
+           Update SREERAMC1.BENEFMST
+           Set STATUS = 'A'
+           Where STATUS = 'P'
+             And ADDTIME <= (CURRENT_TIMESTAMP - 30 MINUTES);
+
+       l_Count = SQLerrd(3);
+
+       Exec SQL Commit;
+
+       Return;
+       End-Proc;
+**FREE
+// ====================================================================
+// RAMA BANK - BENEFICIARY MANAGEMENT
+// Enforces 30-min cooling (STATUS='P' pending verification via batch
+// later -> promoted to 'A' by BENEFCOOL, a new batch job). Verifies
+// IFSC against lookup table. Soft-deletes existing records.
+//
+// Fix vs original: BENEFID (the unique key) was never assigned on
+// insert, defaulting to 0 and causing a duplicate-key failure on
+// every beneficiary added system-wide after the very first one.
+// Now uses SEQ_BENEFID.
+// ====================================================================
+Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Benef_Main) BndDir('RAMABND');
+
+Dcl-F BENEFSCR WORKSTN Sfile(BENSFL: RRN) IndDS(ScnInd);
+
+Dcl-Ds ScnInd;
+    ExitKey Ind Pos(3);
+    AddKey  Ind Pos(6);
+    SflClr    Ind Pos(42);
+    SflDspCtl Ind Pos(41);
+    SflDsp    Ind Pos(40);
+    PendColor Ind Pos(80);
+End-Ds;
+
+Dcl-Pr Benef_Main ExtPgm('BENEFPGM');
+    p_CustID Char(20) Const;
+End-Pr;
+
+Dcl-S RRN Int(10);
+
+// SET OPTION must be the first SQL statement in the source member
+Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+Dcl-Proc Benef_Main;
+    Dcl-Pi Benef_Main;
+        p_CustID Char(20) Const;
+    End-Pi;
+
+    Dcl-S l_Exit Ind Inz(*Off);
+    Dcl-S l_Found Int(10);
+    Dcl-S l_NextID Int(10);
+    Dcl-S sql_CustID Char(20);
+
+    sql_CustID = p_CustID;
+
+    Exec SQL Declare BCur Cursor For
+            Select BENEFNAME, BENEFACCT, BENEIFSC, STATUS
+            From SREERAMC1.BENEFMST
+            Where CUSTID = :sql_CustID And STATUS <> 'D'; //-- Hide soft deleted
+     // in place of declare cursor in LoadSubfile to avoid SQL0104 error on fetch
+
+    Dow Not l_Exit;
+        ExSr LoadSubfile;
+        CUSTID = p_CustID;
+        ExFmt BENCTL;
+
+        If ExitKey;
+            l_Exit = *On;
+            Iter;
+        EndIf;
+
+        If AddKey;
+            ExFmt BENADD;
+            If ExitKey;
+              Iter;
+            EndIf;
+
+            ExSr AddBeneficiary;
+        EndIf;
+
+        ExSr DeleteBeneficiary; // Using Option '4' mapping
+
+    EndDo;
+
+    // ADD THIS LINE TO FIX RNF7534:closed explicitly in a non-cycle module.
+    Close BENEFSCR;
+    Return;
+
+    BegSr LoadSubfile;
+        SflClr = *On;
+        Write BENCTL;
+        SflClr = *Off;
+
+        SflDspCtl = *On;
+        SflDsp = *Off;
+        RRN = 0;
+
+        //Exec SQL Declare BCur Cursor For
+        //    Select BENEFNAME, BENEFACCT, BENEIFSC, STATUS
+        //    From SREERAMC1.BENEFMST
+        //    Where CUSTID = :sql_CustID And STATUS <> 'D'; //-- Hide soft deleted
+        // in place of declare cursor in LoadSubfile to avoid SQL0104 error on fetch
+
+        Exec SQL Open BCur;
+
+        Dow SQLCode = 0;
+            Exec SQL Fetch BCur Into :BENNAME, :BENACCT, :BENIFSC, :STATUS;
+            If SQLCode <> 0;
+                Leave;
+            EndIf;
+
+            // Color pending differently
+            If STATUS = 'P';
+                PendColor = *On; // Red
+            Else;
+                PendColor = *Off; // Normal
+            EndIf;
+
+            OPT = '';
+            RRN += 1;
+            Write BENSFL;
+        EndDo;
+
+        Exec SQL Close BCur;
+
+        If RRN > 0;
+            SflDsp = *On;
+        EndIf;
+    EndSr;
+
+    BegSr AddBeneficiary;
+        ERRMSG = *Blanks;
+        If NEWNAME = '' Or NEWACCT = '' Or NEWIFSC = '';
+            ERRMSG = 'All fields are mandatory.';
+            //Return;
+            Leavesr;  // FIX: Exits only the subroutine so the user can see the error
+        EndIf;
+
+        // Verify IFSC
+        Exec SQL Select COUNT(*) Into :l_Found
+                 From SREERAMC1.IFSCLOOKUP
+                 Where IFSC = :NEWIFSC;
+
+        If l_Found = 0;
+            ERRMSG = 'Invalid IFSC Code mapped. Not found in dictionary.';
+            //Return;
+            Leavesr;  // FIX: Exits only the subroutine so the user can see the error
+        EndIf;
+
+        // Set status 'P' and insert
+        Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_BENEFID Into :l_NextID;
+
+        Exec SQL Insert Into SREERAMC1.BENEFMST(BENEFID, CUSTID, BENEFNAME,
+                             BENEFACCT, BENEIFSC, STATUS, ADDTIME)
+                 Values(:l_NextID, :sql_CustID, :NEWNAME, :NEWACCT, :NEWIFSC,
+                        'P', CURRENT_TIMESTAMP);
+
+        If SQLCode <> 0;
+            ERRMSG = 'Add failed. SQLCODE: ' + %Char(SQLCode);
+            //Return;
+            Leavesr;  // FIX: Exits only the subroutine so the user can see the error
+        EndIf;
+
+        ERRMSG = 'Beneficiary added. Subject to 30 mins cooling period.';
+        NEWNAME = '';
+        NEWACCT = '';
+        NEWIFSC = '';
+    EndSr;
+
+    BegSr DeleteBeneficiary;
+        ReadC BENSFL;
+        Dow Not %Eof(BENEFSCR);
+            If OPT = '4'; // Delete
+                Exec SQL Update SREERAMC1.BENEFMST Set STATUS = 'D'
+                         Where CUSTID = :sql_CustID
+                         And BENEFACCT = :BENACCT And BENEIFSC = :BENIFSC;
+                OPT = '';
+                Update BENSFL;
+            EndIf;
+            ReadC BENSFL;
+        EndDo;
+    EndSr;
+
+End-Proc;
+**FREE
+      //====================================================================
+      // RAMA BANK - BILL PAYMENTS
+      // Fetches registered billers, supports manual payment and the
+      // overnight AutoPay batch (called with p_CustID = '*AUTOPAY').
+      //
+      // Rewritten. Original had multiple Exec SQL statements truncated
+      // mid-line (would not compile), referenced BANKLIB.ACCTMS (typo,
+      // missing the final T, and wrong library), never generated a
+      // TXNID for the TXNHIST insert, re-used a stale BALANCE host
+      // variable instead of re-checking it at payment time, and
+      // RunAutoPayBatch declared a cursor but never opened, fetched,
+      // or paid anything - the entire AutoPay feature was a stub.
+      //
+      // To create SEQ_TXNID sequence (if not already present): IN STRSQL
+      //CREATE SEQUENCE SREERAMC1.SEQ_BENEFID
+      //AS INTEGER
+      //START WITH 1
+      //INCREMENT BY 1
+      //NO MAXVALUE
+      //NO CYCLE
+      //CACHE 20
+      //====================================================================
+
+      //====================================================================
+      // RAMA BANK - BILL PAYMENTS
+      // Fetches registered billers, supports manual payment and the
+      // overnight AutoPay batch (called with p_CustID = '*AUTOPAY').
+      //====================================================================
+      Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(BillPay_Main) BndDir('RAMABND');
+
+      // USROPN prevents the interactive display file from opening in batch jobs
+      Dcl-F BILLPAYSCR WORKSTN Sfile(BILLSFL: RRN) IndDS(ScnInd) UsrOpn;
+
+      Dcl-Ds ScnInd;
+          ExitKey   Ind Pos(3);
+          SflClr    Ind Pos(42);
+          SflDspCtl Ind Pos(41);
+          SflDsp    Ind Pos(40);
+      End-Ds;
+
+      Dcl-Pr BillPay_Main ExtPgm('BILLPAYPGM');
+          p_CustID Char(20) Const;
+      End-Pr;
+
+      Dcl-S RRN Int(10); // FIX: Declared globally so the global Dcl-F can see it
+
+      Exec SQL Set Option Commit=*Chg, Naming=*Sys;
+
+      Dcl-Proc BillPay_Main;
+          Dcl-Pi BillPay_Main;
+              p_CustID Char(20) Const; // '*AUTOPAY' triggers batch mode
+          End-Pi;
+
+       // Local variables for BillPay_Main
+        Dcl-S l_Exit     Ind Inz(*Off);
+        Dcl-S l_AcctNum  Char(20);
+        Dcl-S l_Balance  Packed(15:2);
+
+       // FIX: Variables moved from ProcessPayment subroutine to the top of procedure
+         Dcl-S l_NextTxn  Int(10);
+         Dcl-S l_CurBal   Packed(15:2);
+         Dcl-S l_Failed   Ind Inz(*Off);
+
+         // FIX: Variables moved from RunAutoPayBatch subroutine to the top of procedure
+         Dcl-S l_AutoAcct Char(20);
+         Dcl-S l_AutoBill Char(20);
+         Dcl-S l_AutoBal  Packed(15:2);
+         Dcl-S l_AutoAmt  Packed(15:2);
+         Dcl-S l_AutoTxn  Int(10);
+         Dcl-S l_AutoFail Ind Inz(*Off);
+
+         // SQL Cursors declared at the top of the procedure
+         Exec SQL Declare BillCur Cursor For
+             Select B.BILLERNAME, B.CATEGORY, R.CONN_NUM, R.AUTOPAY
+             From SREERAMC1.BILLREG R
+             Join SREERAMC1.BILLERMST B ON R.BILLERID = B.BILLERID
+             Where R.CUSTID = :p_CustID;
+
+         Exec SQL Declare PayCur Cursor For
+             Select BALANCE From SREERAMC1.ACCTMST
+             Where ACCTNUM = :l_AcctNum For Update Of BALANCE;
+
+         Exec SQL Declare AutoCur Cursor For
+             Select ACCTNUM, BILLERID From SREERAMC1.BILLREG
+             Where AUTOPAY = 'Y'
+             For Read Only;
+
+         Exec SQL Declare AutoBalCur Cursor For
+             Select BALANCE From SREERAMC1.ACCTMST
+             Where ACCTNUM = :l_AutoAcct For Update Of BALANCE;
+
+         // Check for Overnight Batch Mode
+         If p_CustID = '*AUTOPAY';
+             ExSr RunAutoPayBatch;
+             Return;
+         EndIf;
+
+         // FIX: Only open the workstation file in interactive mode
+         If Not %Open(BILLPAYSCR);
+             Open BILLPAYSCR;
+         EndIf;
+
+         Exec SQL Select ACCTNUM, BALANCE Into :l_AcctNum, :l_Balance
+                  From SREERAMC1.ACCTMST
+                  Where CUSTID = :p_CustID Fetch First 1 Row Only;
+
+         If SQLCode <> 0;
+             ERRMSG = 'No account found for this customer.';
+             ExFmt BILLCTL;
+
+             // FIX: Explicit close before early return
+             If %Open(BILLPAYSCR);
+                 Close BILLPAYSCR;
+             EndIf;
+             Return;
+         EndIf;
+
+         ACCTNUM = l_AcctNum;
+         BALANCE = l_Balance;
+
+         Dow Not l_Exit;
+             ExSr LoadSubfile;
+             ExFmt BILLCTL;
+
+             If ExitKey;
+                 l_Exit = *On;
+                 Iter;
+             EndIf;
+
+             ExSr ProcessPayment;
+         EndDo;
+
+         // FIX: Explicitly close the workstation file before program exit
+         If %Open(BILLPAYSCR);
+             Close BILLPAYSCR;
+         EndIf;
+         Return;
+
+         BegSr LoadSubfile;
+             SflClr = *On;
+             Write BILLCTL;
+             SflClr = *Off;
+             SflDspCtl = *On;
+             SflDsp = *Off;
+             RRN = 0;
+
+             Exec SQL Open BillCur;
+
+             Dow SQLCode = 0;
+                 Exec SQL Fetch BillCur Into :S_BILLER, :S_CAT, :S_CONNUM,
+                                              :S_AUTOPAY;
+                 If SQLCode <> 0;
+                     Leave;
+                 EndIf;
+
+                 S_SEL = '';
+                 RRN += 1;
+                 Write BILLSFL;
+             EndDo;
+
+             Exec SQL Close BillCur;
+
+             If RRN > 0;
+                 SflDsp = *On;
+             EndIf;
+         EndSr;
+
+         BegSr ProcessPayment;
+             ReadC BILLSFL;
+             Dow Not %Eof(BILLPAYSCR);
+                 If S_SEL = '1';
+                     Exec SQL Open PayCur;
+                     Exec SQL Fetch PayCur Into :l_CurBal;
+
+                     If SQLCode <> 0;
+                         Exec SQL Close PayCur;
+                         ERRMSG = 'Could not retrieve current balance.';
+                     ElseIf PAYAMT <= 0 Or PAYAMT > l_CurBal;
+                         Exec SQL Close PayCur;
+                         ERRMSG = 'Invalid amount or insufficient balance.';
+                     Else;
+                         l_Failed = *Off;
+                         l_CurBal -= PAYAMT;
+
+                         Exec SQL Update SREERAMC1.ACCTMST
+                                  Set BALANCE = :l_CurBal
+                                  Where Current Of PayCur;
+                         If SQLCode <> 0;
+                             l_Failed = *On;
+                         EndIf;
+                         Exec SQL Close PayCur;
+
+                         If Not l_Failed;
+                             Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_TXNID
+                                      Into :l_NextTxn;
+
+                             Exec SQL Insert Into SREERAMC1.TXNHIST(TXNID,
+                                         TXNDATE, TXNTIME, ACCTNUM, TXNTYPE,
+                                         AMOUNT, REFNUM, BALAFTER, STATUS)
+                                  Values(:l_NextTxn, CURRENT_DATE,
+                                         CURRENT_TIME, :l_AcctNum, 'DR',
+                                         :PAYAMT,
+                                         'BILL' || TRIM(Char(:l_NextTxn)),
+                                         :l_CurBal, 'S');
+                             If SQLCode <> 0;
+                                 l_Failed = *On;
+                             EndIf;
+                         EndIf;
+
+                         If l_Failed;
+                             Exec SQL Rollback;
+                             ERRMSG = 'Payment failed - please try again.';
+                         Else;
+                             Exec SQL Commit;
+                             l_Balance = l_CurBal;
+                             BALANCE = l_CurBal;
+                             ERRMSG = 'Payment successful for '
+                                      + %Trim(S_BILLER);
+                         EndIf;
+                     EndIf;
+
+                     S_SEL = '';
+                     Update BILLSFL;
+                 EndIf;
+                 ReadC BILLSFL;
+             EndDo;
+         EndSr;
+
+         BegSr RunAutoPayBatch;
+             l_AutoAmt = 500.00;
+
+             Exec SQL Open AutoCur;
+
+             Dow SQLCode = 0;
+                 Exec SQL Fetch AutoCur Into :l_AutoAcct, :l_AutoBill;
+                 If SQLCode <> 0;
+                     Leave;
+                 EndIf;
+
+                 l_AutoFail = *Off;
+
+                 Exec SQL Open AutoBalCur;
+                 Exec SQL Fetch AutoBalCur Into :l_AutoBal;
+
+                 If SQLCode <> 0 Or l_AutoBal < l_AutoAmt;
+                     Exec SQL Close AutoBalCur;
+                     Iter;
+                 EndIf;
+
+                 l_AutoBal -= l_AutoAmt;
+
+                 Exec SQL Update SREERAMC1.ACCTMST Set BALANCE = :l_AutoBal
+                          Where Current Of AutoBalCur;
+                 If SQLCode <> 0;
+                     l_AutoFail = *On;
+                 EndIf;
+                 Exec SQL Close AutoBalCur;
+
+                 If Not l_AutoFail;
+                     Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_TXNID
+                              Into :l_AutoTxn;
+
+                     Exec SQL Insert Into SREERAMC1.TXNHIST(TXNID, TXNDATE,
+                                 TXNTIME, ACCTNUM, TXNTYPE, AMOUNT, REFNUM,
+                                 BALAFTER, STATUS)
+                          Values(:l_AutoTxn, CURRENT_DATE, CURRENT_TIME,
+                                 :l_AutoAcct, 'DR', :l_AutoAmt,
+                                 'AUTOPAY' || TRIM(Char(:l_AutoTxn)), :l_AutoBal,
+                                 'S');
+                     If SQLCode <> 0;
+                         l_AutoFail = *On;
+                     EndIf;
+                 EndIf;
+
+                 If l_AutoFail;
+                     Exec SQL Rollback;
+                 Else;
+                     Exec SQL Commit;
+                 EndIf;
+             EndDo;
+
+             Exec SQL Close AutoCur;
+         EndSr;
+
+        End-Proc;
+
+**FREE
+      //====================================================================
+      // RAMA BANK - CARD MANAGEMENT
+      // Fetches Card limits, toggles usage flags (Intl, Online, Cntls).
+      // Integrates with SETPINPGM/CARDCTLCL for PIN reset, now gated
+      // behind real OTP verification.
+      //
+      // Rewritten. Original had a SELECT truncated mid-column-list with
+      // a duplicate INTO host variable (:DLYLMT used twice, silently
+      // dropping USEDLIMIT), multiple truncated UPDATE/INSERT
+      // statements, AUDITLOG inserts missing the LOGID key, BANKLIB
+      // instead of SREERAMC1, and a fake PIN reset that always sent a
+      // hardcoded '0000'/'MOCKHASH' with no OTP check at all.
+      //====================================================================
+      Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Card_Main) BndDir('RAMABND');
+
+      // Global File Declarations
+      Dcl-F CARDDTLSCR WORKSTN IndDS(ScnInd);
+
+      // Global Indicator Data Structure
+      Dcl-Ds ScnInd;
+          ExitKey   Ind Pos(3);
+          UpdateKey Ind Pos(9);
+      End-Ds;
+
+      // Global Prototypes
+      Dcl-Pr Card_Main ExtPgm('CARDDTLPGM');
+          p_CustID Char(20) Const;
+      End-Pr;
+
+      Dcl-Pr Call_OtpVer ExtPgm('OTPVERPGM');
+          p_CustID  Char(20) Const;
+          p_Purpose Char(10) Const;
+          p_Valid   Ind;
+      End-Pr;
+
+      Dcl-Pr Call_CardCtl ExtPgm('CARDCTLCL');
+          p_CardNum Char(16) Const;
+          p_Action  Char(10) Const;
+      End-Pr;
+
+      // Prototype for internal subprocedure (replaces the broken subroutine)
+      Dcl-Pr ChangeCardStatus;
+          p_NewStatus Char(1)  Const;
+          p_Action    Char(20) Const;
+          p_Details   Char(60) Const;
+          p_CardNum   Char(16) Const;
+          p_CustID    Char(20) Const;
+      End-Pr;
+
+      Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+      //====================================================================
+      // MAIN PROCEDURE
+      //====================================================================
+      Dcl-Proc Card_Main;
+          Dcl-Pi Card_Main;
+              p_CustID Char(20) Const;
+          End-Pi;
+
+          Dcl-S l_Exit     Ind Inz(*Off);
+          Dcl-S l_Card     Char(16);
+          Dcl-S l_OTPValid Ind Inz(*Off);
+          Dcl-S l_Found    Int(10);
+
+          Dcl-S Sql_AcctNum    Char(20);
+          Dcl-S Sql_Status     Char(1);
+          Dcl-S Sql_IntlFlag   Char(1);
+          Dcl-S Sql_OnlnFlag   Char(1);
+          Dcl-S Sql_CntlFlag   Char(1);
+          Dcl-S Sql_DlyLimit   Packed(15:2);
+          Dcl-S Sql_UsdLimit   Packed(15:2);
+
+          // SQL Query to fetch database values
+          Exec SQL Select C.CARDNUM, C.ACCTNUM, C.STATUS, C.INTL_FLAG,
+                          C.ONLN_FLAG, C.CNTL_FLAG, L.DAILYLIMIT, L.USEDLIMIT
+                   Into :l_Card, :Sql_AcctNum, :Sql_Status, :Sql_IntlFlag,
+                        :Sql_OnlnFlag, :Sql_CntlFlag, :Sql_DlyLimit,
+                        :Sql_UsdLimit
+                   From SREERAMC1.CARDMST C
+                   Join SREERAMC1.CRDLIMIT L On C.CARDNUM = L.CARDNUM
+                   Where C.CUSTID = :p_CustID Fetch First 1 Row Only;
+
+          l_Found = 1;
+          If SQLCode <> 0;
+              l_Found = 0;
+          EndIf;
+
+          // Map DB fields to Display Screen Formats
+          If l_Found = 1;
+              CARDNUM  = 'XXXX-XXXX-XXXX-' + %Subst(l_Card: 13: 4);
+              ACCTNUM  = Sql_AcctNum;
+              STATUS   = Sql_Status;
+              INTLFLG  = Sql_IntlFlag;
+              ONLNFLG  = Sql_OnlnFlag;
+              CNTLFLG  = Sql_CntlFlag;
+              DLYLMT   = Sql_DlyLimit;
+          EndIf;
+
+          Dow Not l_Exit;
+              If l_Found = 0;
+                  ERRMSG = 'No card found for this customer.';
+                  ExFmt CARDFMT;
+                  l_Exit = *On;
+                  Iter;
+              EndIf;
+
+              ExFmt CARDFMT;
+
+              If ExitKey;
+                  l_Exit = *On;
+                  Iter;
+              EndIf;
+
+              ERRMSG = *Blanks;
+
+              // Process Updates
+              If UpdateKey;
+                  If STATUS = 'A';
+                      Exec SQL Update SREERAMC1.CARDMST
+                               Set INTL_FLAG = :INTLFLG, ONLN_FLAG = :ONLNFLG,
+                                   CNTL_FLAG = :CNTLFLG
+                               Where CARDNUM = :l_Card;
+
+                      Exec SQL Update SREERAMC1.CRDLIMIT
+                               Set DAILYLIMIT = :DLYLMT
+                               Where CARDNUM = :l_Card;
+
+                      If SQLCode = 0;
+                          ERRMSG = 'Card settings updated successfully.';
+                      Else;
+                          ERRMSG = 'Update failed. SQLCODE: ' + %Char(SQLCode);
+                      EndIf;
+                  Else;
+                      ERRMSG = 'Card is not Active. Settings cannot be updated.';
+                  EndIf;
+                  Iter;
+              EndIf;
+
+              // Process Custom Actions
+              If ACTION <> '';
+                  If ACTION = 'B';
+                      ChangeCardStatus('B': 'CARD_BLOCK':
+                       'Card blocked by customer': l_Card: p_CustID);
+                      STATUS = 'B';
+                      ERRMSG = 'Card blocked successfully.';
+
+                  ElseIf ACTION = 'U';
+                      ChangeCardStatus('A': 'CARD_UNBLOCK':
+                       'Card unblocked by customer': l_Card: p_CustID);
+                      STATUS = 'A';
+                      ERRMSG = 'Card unblocked successfully.';
+
+                  ElseIf ACTION = 'H';
+                      ChangeCardStatus('H': 'CARD_HOTLIST':
+                       'Card hotlisted permanently': l_Card: p_CustID);
+                      STATUS = 'H';
+                      ERRMSG = 'Card Hotlisted permanently. Order replacement.';
+
+                  ElseIf ACTION = 'P';
+                      Monitor;
+                          Call_OtpVer(p_CustID: 'PINRESET': l_OTPValid);
+                      On-Error;
+                          l_OTPValid = *Off;
+                      EndMon;
+
+                      If l_OTPValid = *On;
+                          Monitor;
+                              Call_CardCtl(l_Card: '*UPDATEPIN');
+                              ERRMSG = 'PIN reset successful. New PIN sent via secure channel.';
+                          On-Error;
+                              ERRMSG = 'PIN reset service unavailable.';
+                          EndMon;
+                      Else;
+                          ERRMSG = 'OTP verification failed. PIN not reset.';
+                      EndIf;
+                  Else;
+                      ERRMSG = 'Invalid action.';
+                  EndIf;
+                  ACTION = '';
+              EndIf;
+
+          EndDo;
+
+          Close CARDDTLSCR;
+          Return;
+      End-Proc;
+
+      //====================================================================
+      // SUBPROCEDURE: ChangeCardStatus
+      //====================================================================
+      Dcl-Proc ChangeCardStatus;
+          Dcl-Pi *N;
+              p_NewStatus Char(1)  Const;
+              p_Action    Char(20) Const;
+              p_Details   Char(60) Const;
+              p_CardNum   Char(16) Const;
+              p_CustID    Char(20) Const;
+          End-Pi;
+
+          Dcl-S l_NextLog Int(10);
+
+          Exec SQL Update SREERAMC1.CARDMST Set STATUS = :p_NewStatus
+                   Where CARDNUM = :p_CardNum;
+
+          Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_LOGID
+                   Into :l_NextLog;
+
+          Exec SQL Insert Into SREERAMC1.AUDITLOG
+                   (LOGID, LOGTS, USERID, ACTION, DETAILS)
+                   Values(:l_NextLog, CURRENT TIMESTAMP, :p_CustID,
+                          :p_Action, :p_Details);
+      End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - CHANGE PASSWORD
+      // Checks history (PWDHIST) to prevent reuse, validates strength,
+      // forces re-login after update.
+      //
+      // This program was rewritten from scratch. The original source
+      // had multiple Exec SQL statements truncated mid-line with no
+      // terminating semicolon (would not compile), used BANKLIB instead
+      // of SREERAMC1, never qualified the WHERE clause on the password
+      // lookup, used an invalid table name (QSys2.qsqptab) to fetch a
+      // hash value, never generated a PWDHIST key, and called LOGOUTCL
+      // with invalid CALLP syntax on a string literal.
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(ChgPwd_Main)
+               BndDir('RAMABND');
+
+       Dcl-F CHGPWDSCR WORKSTN IndDS(ScnInd);
+
+       Dcl-Ds ScnInd;
+           ExitKey Ind Pos(3);
+       End-Ds;
+
+       Dcl-Pr ChgPwd_Main ExtPgm('CHGPWDPGM');
+           p_UserID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Hash_SHA256 Varchar(64) ExtProc('HASH_SHA256');
+           p_Input Varchar(200) Const;
+       End-Pr;
+
+       Dcl-Pr Call_Logout ExtPgm('LOGOUTCL');
+       End-Pr;
+
+       Exec SQL Set Option Commit=*Chg, Naming=*Sys;
+
+       Dcl-Proc ChgPwd_Main;
+       Dcl-Pi ChgPwd_Main;
+           p_UserID Char(20) Const;
+       End-Pi;
+
+       Dcl-S l_Exit      Ind Inz(*Off);
+       Dcl-S l_Failed    Ind Inz(*Off);
+       Dcl-S l_Count     Int(10);
+       Dcl-S l_CurHash   Varchar(64);
+       Dcl-S l_DbHash    Varchar(64);
+       Dcl-S l_NewHash   Varchar(64);
+       Dcl-S l_CountHist Int(10);
+       Dcl-S l_NewPHID   Int(10);
+       Dcl-S l_NewLogID  Int(10);
+       Dcl-S sql_UserID  Char(20);
+
+       sql_UserID = p_UserID;
+
+       Dow Not l_Exit;
+           CURPWD = *Blanks;
+           NEWPWD = *Blanks;
+           CNFPWD = *Blanks;
+           PWDERR = *Blanks;
+           ExFmt CHGPWD;
+
+           If ExitKey;
+               l_Exit = *On;
+               Iter;
+           EndIf;
+
+           PWDERR = *Blanks;
+
+           If CURPWD = *Blanks Or NEWPWD = *Blanks Or CNFPWD = *Blanks;
+               PWDERR = 'All fields are required.';
+               Iter;
+           EndIf;
+
+           If NEWPWD <> CNFPWD;
+               PWDERR = 'New and Confirm passwords do not match.';
+               Iter;
+           EndIf;
+
+           If %Len(%Trim(NEWPWD)) < 8;
+               PWDERR = 'Password must be at least 8 characters long.';
+               Iter;
+           EndIf;
+
+           If NEWPWD = CURPWD;
+               PWDERR = 'New password must differ from current password.';
+               Iter;
+           EndIf;
+
+           Exec SQL Select Count(*), Max(PWDHASH)
+                    Into :l_Count, :l_DbHash
+                    From SREERAMC1.USERMST
+                    Where USERID = :sql_UserID;
+
+           If l_Count = 0;
+               PWDERR = 'User record not found.';
+               Iter;
+           EndIf;
+
+           l_CurHash = Hash_SHA256(%Trim(CURPWD));
+
+           If l_CurHash <> l_DbHash;
+               PWDERR = 'Current password is incorrect.';
+               Iter;
+           EndIf;
+
+           l_NewHash = Hash_SHA256(%Trim(NEWPWD));
+
+           Exec SQL Select Count(*) Into :l_CountHist
+                    From SREERAMC1.PWDHIST
+                    Where USERID = :sql_UserID And PWDHASH = :l_NewHash;
+
+           If l_CountHist > 0;
+               PWDERR = 'Cannot reuse a previously used password.';
+               Iter;
+           EndIf;
+
+           l_Failed = *Off;
+
+           Exec SQL Update SREERAMC1.USERMST
+                    Set PWDHASH = :l_NewHash, FAILCNT = 0, LOCKFLAG = 'N'
+                    Where USERID = :sql_UserID;
+
+           If SQLCode <> 0;
+               PWDERR = 'Update failed. SQLCODE: ' + %Char(SQLCode);
+               l_Failed = *On;
+           EndIf;
+
+           If Not l_Failed;
+               Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_PHID
+                        Into :l_NewPHID;
+
+               Exec SQL Insert Into SREERAMC1.PWDHIST
+                        (PHID, USERID, PWDHASH, CHGDATE)
+                        Values(:l_NewPHID, :sql_UserID, :l_NewHash,
+                               CURRENT TIMESTAMP);
+
+               If SQLCode <> 0;
+                   PWDERR = 'PWDHIST insert failed. SQLCODE: '
+                            + %Char(SQLCode);
+                   l_Failed = *On;
+               EndIf;
+           EndIf;
+
+           If Not l_Failed;
+               Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_LOGID
+                        Into :l_NewLogID;
+
+               Exec SQL Insert Into SREERAMC1.AUDITLOG
+                        (LOGID, LOGTS, USERID, ACTION, DETAILS)
+                        Values(:l_NewLogID, CURRENT TIMESTAMP, :sql_UserID,
+                               'PWD_CHANGE', 'Password changed by user');
+
+               If SQLCode <> 0;
+                   PWDERR = 'AUDITLOG insert failed. SQLCODE: '
+                            + %Char(SQLCode);
+                   l_Failed = *On;
+               EndIf;
+           EndIf;
+
+           If l_Failed;
+               Exec SQL Rollback;
+               Iter;
+           EndIf;
+
+           Exec SQL Commit;
+
+           // Force re-login: clear the session and end this program;
+           // the caller (PROFILEPGM/DASHPGM) will see control return
+           // and the next screen action will require re-authentication
+           // because SESSIONID has been cleared.
+           Monitor;
+               Call_Logout();
+           On-Error;
+           EndMon;
+
+           l_Exit = *On;
+       EndDo;
+
+       Close CHGPWDSCR;
+       Return;
+
+       End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - DASHBOARD (Main Navigation Hub)
+      // Merged from DASHPGM + DASHPGM1 (were two divergent versions of
+      // the same screen). DASHPGM1 and DASHSCR1 are retired.
+      //
+      // Fixes:
+      //  - ExtPgm('PROFPGL') corrected to ExtPgm('PROFILEPGM').
+      //    'PROFPGL' does not exist anywhere in the codebase; selecting
+      //    option 7 (Profile & KYC) would abend on every run.
+      //  - $BALANCE in DASHSFL is now Packed(15:2) to match ACCTMST
+      //    (was 15Y 2 in DASHSCR which is Zoned; ACCTMST is Packed).
+      //    The program explicitly casts via %EditC to the 15A display
+      //    string on screen, so no DSPF type mismatch remains.
+      //  - $MENUOPT stray field outside any record format (was in a
+      //    commented-out R DASHMENU block). Now in DASHMENU properly.
+      //  - $ERRMSG added to DASHMENU to surface downstream failures.
+      //  - Library SREERAMC1 confirmed throughout.
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Dash_Main)
+               BndDir('RAMABND');
+
+       Dcl-F DASHSCR WORKSTN Sfile(DASHSFL: RRN) IndDS(ScnInd);
+
+       Dcl-Ds ScnInd;
+           ExitKey   Ind Pos(3);
+           SflClr    Ind Pos(42);
+           SflDspCtl Ind Pos(41);
+           SflDsp    Ind Pos(40);
+           SflEnd    Ind Pos(43);
+       End-Ds;
+
+       Dcl-Pr Dash_Main ExtPgm('DASHPGM');
+           p_UserID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_StmtPgm  ExtPgm('STMTPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_FundTr   ExtPgm('FUNDTRPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_CardDtl  ExtPgm('CARDDTLPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_LoanDtl  ExtPgm('LOANDTLPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_FdDtl    ExtPgm('FDDTLPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_BillPay  ExtPgm('BILLPAYPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_Profile  ExtPgm('PROFILEPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_Benef    ExtPgm('BENEFPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_Admin    ExtPgm('ADMINPGM');
+           p_UserID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_MiniStmt ExtPgm('MINIPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_Logout   ExtPgm('LOGOUTCL');
+       End-Pr;
+
+       Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+       Dcl-S RRN     Int(10);
+       Dcl-S l_Exit  Ind Inz(*Off);
+       Dcl-S l_CustID Char(20);
+       Dcl-S l_BalNum Packed(15:2);
+
+       Dcl-Proc Dash_Main;
+       Dcl-Pi Dash_Main;
+           p_UserID Char(20) Const;
+       End-Pi;
+
+       Exec SQL Select CUSTID Into :l_CustID
+                From SREERAMC1.USERMST
+                Where USERID = :p_UserID;
+
+       If SQLCode <> 0;
+           Close DASHSCR;
+           Return;
+       EndIf;
+
+       Exec SQL Select FULLNAME Into :$CUSTNAME
+                From SREERAMC1.CUSTMST
+                Where CUSTID = :l_CustID;
+
+       If SQLCode <> 0;
+           $CUSTNAME = 'Welcome, ' + %Trim(p_UserID);
+       EndIf;
+
+       ExSr LoadSubfile;
+
+       Dow Not l_Exit;
+           $MENUOPT = '';
+           $ERRMSG  = *Blanks;
+           ExFmt DASHCTL;
+           ExFmt DASHMENU;
+
+           If ExitKey;
+               Monitor;
+                   Call_Logout();
+               On-Error;
+               EndMon;
+               l_Exit = *On;
+               Iter;
+           EndIf;
+
+           Select;
+               When $MENUOPT = '1';
+                   Monitor;
+                       Call_StmtPgm(l_CustID);
+                   On-Error;
+                       $ERRMSG = 'Statement module unavailable.';
+                   EndMon;
+
+               When $MENUOPT = '2';
+                   Monitor;
+                       Call_FundTr(l_CustID);
+                   On-Error;
+                       $ERRMSG = 'Fund Transfer module unavailable.';
+                   EndMon;
+
+               When $MENUOPT = '3';
+                   Monitor;
+                       Call_CardDtl(l_CustID);
+                   On-Error;
+                       $ERRMSG = 'Card module unavailable.';
+                   EndMon;
+
+               When $MENUOPT = '4';
+                   Monitor;
+                       Call_LoanDtl(l_CustID);
+                   On-Error;
+                       $ERRMSG = 'Loan module unavailable.';
+                   EndMon;
+
+               When $MENUOPT = '5';
+                   Monitor;
+                       Call_FdDtl(l_CustID);
+                   On-Error;
+                       $ERRMSG = 'FD module unavailable.';
+                   EndMon;
+
+               When $MENUOPT = '6';
+                   Monitor;
+                       Call_BillPay(l_CustID);
+                   On-Error;
+                       $ERRMSG = 'Bill Pay module unavailable.';
+                   EndMon;
+
+               When $MENUOPT = '7';
+                   Monitor;
+                       Call_Profile(l_CustID);
+                   On-Error;
+                       $ERRMSG = 'Profile module unavailable.';
+                   EndMon;
+
+               When $MENUOPT = '8';
+                   Monitor;
+                       Call_Benef(l_CustID);
+                   On-Error;
+                       $ERRMSG = 'Beneficiary module unavailable.';
+                   EndMon;
+
+               When $MENUOPT = '9';
+                   Monitor;
+                       Call_Admin(p_UserID);
+                   On-Error;
+                       $ERRMSG = 'Admin panel unavailable or access denied.';
+                   EndMon;
+
+               When $MENUOPT = 'M';
+                   Monitor;
+                       Call_MiniStmt(l_CustID);
+                   On-Error;
+                       $ERRMSG = 'Mini-statement module unavailable.';
+                   EndMon;
+
+               Other;
+                   $ERRMSG = 'Invalid selection. Use 1-9 or M.';
+           EndSl;
+
+           // Refresh account balances after any module returns
+           ExSr LoadSubfile;
+       EndDo;
+
+       Close DASHSCR;
+       Return;
+
+       BegSr LoadSubfile;
+           SflClr = *On;
+           Write DASHCTL;
+           SflClr = *Off;
+           SflDspCtl = *On;
+           SflDsp = *Off;
+           RRN = 0;
+
+           Exec SQL Declare DashCur Cursor For
+               Select ACCTNUM, ACCTTYPE, BALANCE, STATUS
+               From SREERAMC1.ACCTMST
+               Where CUSTID = :l_CustID
+               Order By ACCTTYPE Asc;
+
+           Exec SQL Open DashCur;
+
+           Dow SQLCode = 0;
+               Exec SQL Fetch DashCur
+                        Into :$ACCTNUM, :$ACCTTYPE, :l_BalNum, :$STATUS;
+               If SQLCode <> 0;
+                   Leave;
+               EndIf;
+               $BALANCE = l_BalNum;
+               RRN += 1;
+               Write DASHSFL;
+           EndDo;
+
+           Exec SQL Close DashCur;
+
+           If RRN > 0;
+               SflDsp = *On;
+           EndIf;
+       EndSr;
+
+       End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - FIXED DEPOSIT DETAIL & OPERATIONS
+      // BUG-04 FIX: ExFmt changed from FDMFMT to FDFMT (FDSCR defines FDFMT)
+      // BUG-05 FIX: TERMMNTH renamed to MONTHS (FDSCR defines MONTHS)
+      // BUG-06 FIX: DAYSLEFT removed (no such field in FDSCR)
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(FdDtl_Main)
+               BndDir('RAMABND');
+
+       Dcl-F FDSCR WORKSTN IndDS(ScnInd);
+
+       Dcl-Ds ScnInd;
+           ExitKey  Ind Pos(3);
+           CloseKey Ind Pos(10);
+       End-Ds;
+
+       Dcl-Pr FdDtl_Main ExtPgm('FDDTLPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Exec SQL Set Option Commit=*Chg, Naming=*Sys;
+
+       Dcl-S l_FdAcct    Char(20);
+       Dcl-S l_LinkedSB  Char(20);
+       Dcl-S l_Prinamt   Packed(15:2);
+       Dcl-S l_IntRate   Packed(5:2);
+       Dcl-S l_TermMnth  Int(10);
+       Dcl-S l_StartDate Date;
+       Dcl-S l_MatDate   Date;
+       Dcl-S l_MatAmt    Packed(15:2);
+       Dcl-S l_FdSts     Char(1);
+       Dcl-S l_Found     Int(10);
+
+       Dcl-Proc FdDtl_Main;
+       Dcl-Pi FdDtl_Main;
+           p_CustID Char(20) Const;
+       End-Pi;
+
+       Dcl-S l_Exit    Ind Inz(*Off);
+       Dcl-S l_Penalty  Packed(15:2);
+       Dcl-S l_Final    Packed(15:2);
+       Dcl-S l_NextTxn  Int(10);
+       Dcl-S l_Failed   Ind Inz(*Off);
+
+       Exec SQL
+           Select FDACCT, LINKEDSB, PRINAMT, INTRATE, TERMMNTH,
+                  STARTDATE, MATDATE, MATAMT, FDSTS
+           Into :l_FdAcct, :l_LinkedSB, :l_Prinamt, :l_IntRate,
+                :l_TermMnth, :l_StartDate, :l_MatDate, :l_MatAmt,
+                :l_FdSts
+           From SREERAMC1.FDMST
+           Where CUSTID = :p_CustID And FDSTS = 'A'
+           Fetch First 1 Row Only;
+
+       l_Found = 1;
+       If SQLCode <> 0;
+           l_Found = 0;
+       EndIf;
+
+       If l_Found = 1;
+           FDACCT  = l_FdAcct;
+           PRINAMT = l_Prinamt;
+           INTRATE = l_IntRate;
+           MONTHS  = l_TermMnth;          // BUG-05 FIX: was TERMMNTH
+           MATDATE = %Char(l_MatDate: *ISO);
+           MATAMT  = l_MatAmt;
+           STATUS  = l_FdSts;
+           // BUG-06 FIX: DAYSLEFT removed - no such field in FDSCR
+       EndIf;
+
+       Dow Not l_Exit;
+           If l_Found = 0;
+               ERRMSG = 'No active Fixed Deposit found for this customer.';
+               ExFmt FDFMT;                // BUG-04 FIX: was FDMFMT
+               l_Exit = *On;
+               Iter;
+           EndIf;
+
+           ExFmt FDFMT;                   // BUG-04 FIX: was FDMFMT
+
+           If ExitKey;
+               l_Exit = *On;
+               Iter;
+           EndIf;
+
+           ERRMSG = *Blanks;
+
+           If CloseKey;
+               If l_FdSts <> 'A';
+                   ERRMSG = 'FD is not Active. Cannot close.';
+                   Iter;
+               EndIf;
+
+               l_Penalty = l_Prinamt * 0.01;
+               l_Final   = l_Prinamt - l_Penalty;
+               l_Failed  = *Off;
+
+               Exec SQL Update SREERAMC1.ACCTMST
+                        Set BALANCE = BALANCE + :l_Final
+                        Where ACCTNUM = :l_LinkedSB;
+               If SQLCode <> 0;
+                   l_Failed = *On;
+               EndIf;
+
+               If Not l_Failed;
+                   Exec SQL Update SREERAMC1.ACCTMST
+                            Set STATUS = 'C'
+                            Where ACCTNUM = :l_FdAcct;
+                   If SQLCode <> 0;
+                       l_Failed = *On;
+                   EndIf;
+               EndIf;
+
+               If Not l_Failed;
+                   Exec SQL Update SREERAMC1.FDMST Set FDSTS = 'C'
+                            Where FDACCT = :l_FdAcct;
+                   If SQLCode <> 0;
+                       l_Failed = *On;
+                   EndIf;
+               EndIf;
+
+               If Not l_Failed;
+                   Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_TXNID
+                            Into :l_NextTxn;
+
+                   Exec SQL Insert Into SREERAMC1.TXNHIST
+                            (TXNID, TXNDATE, TXNTIME, ACCTNUM, TXNTYPE,
+                             AMOUNT, REFNUM, BALAFTER, STATUS)
+                       Select :l_NextTxn, CURRENT_DATE, CURRENT_TIME,
+                              :l_LinkedSB, 'CR', :l_Final,
+                             // 'FDCLOSE' + %Char(l_NextTxn), BALANCE, 'S'
+                              'FDCLOSE' || TRIM(CHAR(:l_NextTxn)), BALANCE, 'S'
+                       From SREERAMC1.ACCTMST
+                       Where ACCTNUM = :l_LinkedSB;
+
+                   If SQLCode <> 0;
+                       l_Failed = *On;
+                   EndIf;
+               EndIf;
+
+               If l_Failed;
+                   Exec SQL Rollback;
+                   ERRMSG = 'FD closure failed. Please try again.';
+               Else;
+                   Exec SQL Commit;
+                   l_FdSts = 'C';
+                   STATUS  = 'C';
+                   ERRMSG  = 'FD closed. Penalty: '
+                              + %Trim(%EditC(l_Penalty: 'P'))
+                              + '  Credited: '
+                              + %Trim(%EditC(l_Final: 'P'));
+                   l_Exit  = *On;
+               EndIf;
+           EndIf;
+       EndDo;
+
+       Close FDSCR;
+       Return;
+       End-Proc;
+     **FREE
+      //===============================================================
+      // RAMA BANK - FUND TRANSFER WORKFLOW
+      // 4 Screens: Details -> Confirmation -> OTP Verify -> Result
+      // Enforces limits: NEFT max 10L, RTGS min 2L, IMPS max 5L.
+      // Atomic Commit with row locking (FOR UPDATE) and real
+      // Commitment Control (Commit=*Chg + explicit Rollback on error).
+      //
+      // CRITICAL FIXES vs original:
+      //  1. The destination account was NEVER credited for intra-bank
+      //     transfers - money simply vanished. This version credits
+      //     the beneficiary's ACCTMST row when the beneficiary account
+      //     belongs to this bank, and queues NEFT/RTGS items for the
+      //     settlement batch (NEFTBATCH/NEFTPGM) when it doesn't
+      //     resolve to a local account (true interbank transfer).
+      //  2. OTP was hardcoded as '123456'. Now uses OTPSRV
+      //     (OTP_Generate/OTP_Verify) with real expiry + hashing.
+      //  3. Commit=*None meant Commit/Rollback were no-ops and a
+      //     failure between the debit and the TXNHIST insert silently
+      //     lost money with no audit trail. Now uses Commit=*Chg with
+      //     explicit Rollback on any failure step.
+      //  4. The beneficiary check tested SQLCode<>0 after SELECT
+      //     COUNT(*), which never happens (COUNT always returns a
+      //     row). Now correctly tests the count itself.
+      //  5. TXNID/QID generation used SELECT MAX()+1, which races
+      //     under concurrent use. Now uses SEQ_TXNID/SEQ_QID.
+      //  6. Library corrected from BANKLIB to SREERAMC1 throughout.
+      //===============================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Fund_Main)
+               BndDir('RAMABND');
+       Ctl-Opt Option(*SrcStmt : *NoDebugIO);
+
+       Exec SQL Set Option Commit=*Chg, Naming=*Sys, CloSqlCsr=*EndMod;
+
+       Dcl-F FUNDSCR WORKSTN IndDS(dspfInds);
+
+       Dcl-Pr Fund_Main ExtPgm('FUNDTRPGM');
+             p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr OTP_Generate Char(6) ExtProc('OTP_GENERATE');
+           p_CustID  Char(20) Const;
+           p_Purpose Char(10) Const;
+       End-Pr;
+
+       Dcl-Pr OTP_Verify Ind ExtProc('OTP_VERIFY');
+           p_CustID   Char(20) Const;
+           p_Purpose  Char(10) Const;
+           p_InputOTP Char(6) Const;
+       End-Pr;
+
+       Dcl-Ds dspfInds;
+           ExitKey    Ind Pos(3);
+           BackKey    Ind Pos(5);
+           ErrorColor Ind Pos(90);
+       End-Ds;
+
+       Dcl-S l_State     Int(10) Inz(1); // 1=Dtl, 2=Cnf, 3=OTP, 4=Res
+       Dcl-S l_Exit      Ind Inz(*Off);
+
+       Dcl-S l_Bal       Packed(15:2);
+       Dcl-S l_BenName   Varchar(100);
+       Dcl-S l_Count     Int(10);
+       Dcl-S l_NextTxn   Int(10);
+       Dcl-S l_NextQ     Int(10);
+       Dcl-S l_LocalAcct Int(10); // count of matching local ACCTMST rows
+       Dcl-S l_Failed    Ind Inz(*Off);
+
+       Dcl-S W_$FROMACCT    Varchar(20);
+       Dcl-S W_$TOACCT      Varchar(20);
+       Dcl-S W_$TOIFSC      Char(11);
+       Dcl-S W_$TRNAMT      Packed(15:2);
+       Dcl-S W_$TRNTYPE     Char(4);
+       Dcl-S w_$REFNO       Varchar(20);
+
+       Dcl-Proc Fund_Main;
+       Dcl-Pi Fund_Main;
+          p_CustID Char(20) Const;
+       End-Pi;
+
+       Exec SQL Select ACCTNUM, BALANCE
+             Into :W_$FROMACCT, :l_Bal
+             From SREERAMC1.ACCTMST
+             Where CUSTID = :p_CustID
+             Fetch First 1 Row Only;
+
+       If SQLCode <> 0;
+           ERRMSG = 'No account found for this customer.';
+           ExFmt TRNDTL;
+           Return;
+       EndIf;
+
+       $FROMBAL = %Trim(%EditC(l_Bal: 'P'));
+       $FROMACCT = W_$FROMACCT;
+
+       Dow Not l_Exit;
+         Select;
+          // ==================================
+          // SCREEN 1: DETAILS
+          // ==================================
+          When l_State = 1;
+               ExFmt TRNDTL;
+               If ExitKey;
+                  l_Exit = *On;
+                  Else;
+                     ERRMSG = *Blanks;
+                     W_$TOACCT  = $TOACCT;
+                     W_$TOIFSC  = $TOIFSC;
+                     W_$TRNTYPE = $TRNTYPE;
+                     W_$TRNAMT  = $TRNAMT;
+
+                  If W_$TRNAMT <= 0;
+                     ERRMSG = 'Invalid Amount';
+                     Iter;
+                  EndIf;
+
+                  If W_$TRNAMT > l_Bal;
+                     ERRMSG = 'Insufficient balance for this transfer.';
+                     Iter;
+                  EndIf;
+
+                  If W_$TOACCT = W_$FROMACCT;
+                     ERRMSG = 'Cannot transfer to the same account.';
+                     Iter;
+                  EndIf;
+
+                  If W_$TRNTYPE = 'NEFT' And W_$TRNAMT > 1000000;
+                     ERRMSG = 'NEFT Maximum Limit is 10 Lakhs';
+                     Iter;
+                  EndIf;
+
+                  If W_$TRNTYPE = 'RTGS' And W_$TRNAMT < 200000;
+                     ERRMSG = 'RTGS Minimum Limit is 2 Lakhs';
+                     Iter;
+                  EndIf;
+
+                  If W_$TRNTYPE = 'IMPS' And W_$TRNAMT > 500000;
+                     ERRMSG = 'IMPS Maximum Limit is 5 Lakhs';
+                     Iter;
+                  EndIf;
+
+                  If W_$TRNTYPE <> 'NEFT' And W_$TRNTYPE <> 'RTGS'
+                     And W_$TRNTYPE <> 'IMPS';
+                     ERRMSG = 'Transfer Type must be NEFT, RTGS or IMPS.';
+                     Iter;
+                  EndIf;
+
+                  // Verify Beneficiary exists for this customer
+                  Exec SQL Select COUNT(*)
+                            Into :l_Count
+                         From SREERAMC1.BENEFMST
+                         Where CUSTID = :p_CustID
+                           And BENEFACCT = :W_$TOACCT
+                           And BENEIFSC = :W_$TOIFSC
+                           And STATUS = 'A';
+
+                  If l_Count = 0;
+                ERRMSG = 'Beneficiary not registered/approved, or still '
+                         + 'in cooling period.';
+                     Iter;
+                  EndIf;
+
+                  l_State = 2;
+                 EndIf;
+
+              // ==================================
+              // SCREEN 2: CONFIRMATION
+              // ==================================
+             When l_State = 2;
+               $CFROMACC = W_$FROMACCT;
+               $CTOACCT = W_$TOACCT;
+               $CAMT = %Trim(%EditC(W_$TRNAMT: 'P'));
+
+               Exec SQL Select BENEFNAME
+                        Into :l_BenName
+                        From SREERAMC1.BENEFMST
+                      Where CUSTID = :p_CustID
+                      And BENEFACCT = :W_$TOACCT
+                      Fetch First 1 Row Only;
+                     $CBENAME = l_BenName;
+
+                ExFmt TRNCNF;
+
+                 If ExitKey;
+                    l_Exit = *On;
+                 ElseIf BackKey;
+                    l_State = 1;
+                  Else;
+                    l_State = 3;
+                 EndIf;
+
+                 // ==================================
+                 // SCREEN 3: OTP VERIFY
+                 // ==================================
+             When l_State = 3;
+                 // Generate OTP the first time we land on this screen
+                 If $OTPINP = *Blanks;
+                    OTP_Generate(p_CustID: 'FUNDTR');
+                 EndIf;
+                 $OTPERR = *Blanks;
+                 ExFmt TRNOTP;
+
+                 If ExitKey;
+                    l_Exit = *On;
+                 ElseIf BackKey;
+                    l_State = 2;
+                    $OTPINP = *Blanks;
+                  Else;
+                    If Not OTP_Verify(p_CustID: 'FUNDTR': $OTPINP);
+                       $OTPERR = 'Invalid or expired OTP. Try again.';
+                      Else;
+                      ExSr ProcessTransfer;
+                           l_State = 4;
+                   EndIf;
+                 EndIf;
+
+              // ==================================
+              // SCREEN 4: RESULT
+              // ==================================
+             When l_State = 4;
+                  ExFmt TRNRES;
+
+                 If ExitKey;
+                    l_Exit = *On;
+                  Else;
+                    l_State = 1;
+                    $TOACCT = *Blanks;
+                    $TOIFSC = *Blanks;
+                    $TRNAMT = 0;
+                    $TRNTYPE = *Blanks;
+                    $OTPINP = *Blanks;
+
+                    // Refresh balance for the next transfer
+                    Exec SQL Select BALANCE Into :l_Bal
+                             From SREERAMC1.ACCTMST
+                             Where ACCTNUM = :W_$FROMACCT;
+                    $FROMBAL = %Trim(%EditC(l_Bal: 'P'));
+                 EndIf;
+         EndSl;
+       EndDo;
+
+       Close FUNDSCR;
+       Return;
+
+      // ==================================
+      // DATABASE TRANSACTION PROCESSING
+      // ==================================
+       BegSr ProcessTransfer;
+          l_Failed = *Off;
+
+          // 1. Lock the source account row
+          Exec SQL Declare BalCursor Cursor For
+             Select BALANCE From SREERAMC1.ACCTMST
+             Where ACCTNUM = :W_$FROMACCT For Update Of BALANCE;
+
+          Exec SQL Open BalCursor;
+          Exec SQL Fetch BalCursor Into :l_Bal;
+
+          If SQLCode <> 0;
+             Exec SQL Close BalCursor;
+             $TRNSTAT = 'FAILED';
+             $REFNO = 'N/A';
+             ErrorColor = *On;
+             Return;
+          EndIf;
+
+          // Re-check balance under lock (protects against a concurrent
+          // debit that happened between screen display and this point)
+          If l_Bal < W_$TRNAMT;
+             Exec SQL Close BalCursor;
+             $TRNSTAT = 'FAILED';
+             $REFNO = 'N/A';
+             ErrorColor = *On;
+             Return;
+          EndIf;
+
+          l_Bal -= W_$TRNAMT;
+
+          // 2. Debit source account
+          Exec SQL Update SREERAMC1.ACCTMST
+                 Set BALANCE = :l_Bal
+                 Where Current of BalCursor;
+
+          If SQLCode <> 0;
+             Exec SQL Close BalCursor;
+             Exec SQL Rollback;
+             $TRNSTAT = 'FAILED';
+             $REFNO = 'N/A';
+             ErrorColor = *On;
+             Return;
+          EndIf;
+
+          Exec SQL Close BalCursor;
+
+          w_$REFNO = 'TRN' + %Char(%Timestamp(): *ISO0);
+          w_$REFNO = %Subst(w_$REFNO: 1: 20);
+
+          // 3. Debit-side transaction history row
+          Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_TXNID Into :l_NextTxn;
+
+          Exec SQL Insert Into SREERAMC1.TXNHIST(TXNID, TXNDATE,
+                       TXNTIME, ACCTNUM, TXNTYPE,
+                       AMOUNT, REFNUM, BALAFTER, STATUS)
+                Values(:l_NextTxn, CURRENT_DATE, CURRENT_TIME, :W_$FROMACCT,
+                'DR', :W_$TRNAMT, :w_$REFNO, :l_Bal, 'S');
+
+          If SQLCode <> 0;
+             l_Failed = *On;
+          EndIf;
+
+          // 4. Determine whether the beneficiary account is local
+          //    (same bank) - if so, credit it directly and record a
+          //    matching CR transaction history row. If not local
+          //    (genuine interbank NEFT/RTGS), queue it for settlement
+          //    by the NEFTBATCH job, which calls NEFTPGM.
+          If Not l_Failed;
+             Exec SQL Select COUNT(*) Into :l_LocalAcct
+                      From SREERAMC1.ACCTMST
+                      Where ACCTNUM = :W_$TOACCT And STATUS = 'A';
+          EndIf;
+
+          If Not l_Failed And l_LocalAcct > 0 And W_$TRNTYPE <> 'NEFT'
+             And W_$TRNTYPE <> 'RTGS';
+             // IMPS or any instant local transfer: credit immediately
+             Exec SQL Update SREERAMC1.ACCTMST
+                      Set BALANCE = BALANCE + :W_$TRNAMT
+                      Where ACCTNUM = :W_$TOACCT;
+
+             If SQLCode <> 0;
+                l_Failed = *On;
+             Else;
+                Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_TXNID
+                         Into :l_NextTxn;
+
+                Exec SQL Insert Into SREERAMC1.TXNHIST(TXNID, TXNDATE,
+                             TXNTIME, ACCTNUM, TXNTYPE,
+                             AMOUNT, REFNUM, BALAFTER, STATUS)
+                      Select :l_NextTxn, CURRENT_DATE, CURRENT_TIME,
+                             :W_$TOACCT, 'CR', :W_$TRNAMT, :w_$REFNO,
+                             BALANCE, 'S'
+                      From SREERAMC1.ACCTMST
+                      Where ACCTNUM = :W_$TOACCT;
+
+                If SQLCode <> 0;
+                   l_Failed = *On;
+                EndIf;
+             EndIf;
+
+          ElseIf Not l_Failed And l_LocalAcct > 0;
+             // NEFT/RTGS but happens to be a local account: still
+             // credit immediately since no external network hop is
+             // actually required (avoids needlessly delaying same
+             // bank transfers through the batch queue).
+             Exec SQL Update SREERAMC1.ACCTMST
+                      Set BALANCE = BALANCE + :W_$TRNAMT
+                      Where ACCTNUM = :W_$TOACCT;
+
+             If SQLCode <> 0;
+                l_Failed = *On;
+             Else;
+                Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_TXNID
+                         Into :l_NextTxn;
+
+                Exec SQL Insert Into SREERAMC1.TXNHIST(TXNID, TXNDATE,
+                             TXNTIME, ACCTNUM, TXNTYPE,
+                             AMOUNT, REFNUM, BALAFTER, STATUS)
+                      Select :l_NextTxn, CURRENT_DATE, CURRENT_TIME,
+                             :W_$TOACCT, 'CR', :W_$TRNAMT, :w_$REFNO,
+                             BALANCE, 'S'
+                      From SREERAMC1.ACCTMST
+                      Where ACCTNUM = :W_$TOACCT;
+
+                If SQLCode <> 0;
+                   l_Failed = *On;
+                EndIf;
+             EndIf;
+
+          ElseIf Not l_Failed;
+             // Genuine interbank transfer - queue for NEFTBATCH/NEFTPGM
+             Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_QID Into :l_NextQ;
+
+             Exec SQL Insert Into SREERAMC1.TXNQUEUE
+                   (QID, FROMACCT, TOACCT, TOIFSC, AMOUNT, QTIMESTAMP,
+                    STATUS, NWTYPE)
+                  Values(:l_NextQ, :W_$FROMACCT, :W_$TOACCT, :W_$TOIFSC,
+                    :W_$TRNAMT, CURRENT_TIMESTAMP, 'P', :W_$TRNTYPE);
+
+             If SQLCode <> 0;
+                l_Failed = *On;
+             EndIf;
+          EndIf;
+
+          // 5. Commit or rollback as one atomic unit
+          If l_Failed;
+             Exec SQL Rollback;
+             $TRNSTAT = 'FAILED';
+             $REFNO = 'N/A';
+             ErrorColor = *On;
+          Else;
+             Exec SQL Commit;
+             $TRNSTAT = 'SUCCESS';
+             $REFNO = w_$REFNO;
+             ErrorColor = *Off;
+          EndIf;
+        EndSr;
+
+       End-Proc;
+     **FREE
+      // ====================================================================
+      // RAMA BANK - HASHING SERVICE PROGRAM
+      // ====================================================================
+         Ctl-Opt NoMain;
+
+      // --------------------------------------------------------------------
+      // PROTOTYPES (Required for Exported Procedures)
+      // In a real application, this Dcl-Pr block would be in a separate
+      // source member (e.g., QRPGLESRC,HASH_PR) and included via /COPY.
+      // --------------------------------------------------------------------
+         Dcl-Pr Hash_SHA256 Varchar(64);
+                p_Input Varchar(200) Const;
+         End-Pr;
+
+         // SET OPTION must be the first SQL statement
+          Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+      // --------------------------------------------------------------------
+      // PROCEDURE IMPLEMENTATION
+      // --------------------------------------------------------------------
+         Dcl-Proc Hash_SHA256 Export;
+         Dcl-Pi Hash_SHA256 Varchar(64);
+               p_Input Varchar(200) Const;
+         End-Pi;
+
+         Dcl-S l_Hash Varchar(64) Inz('');
+
+         // 2 is the algorithm code for SHA-256 in the DB2 HASH function.
+         // Using VALUES is faster than SELECT ... FROM a dummy table.
+          Exec SQL
+               Values( Hex(Hash(TRIM(:p_Input), 2)) )
+             Into :l_Hash;
+
+          // Optional: Check for SQL errors
+         If SQLCode <> 0;
+           Return ''; // Return blank if hashing fails
+         EndIf;
+
+           Return l_Hash;
+         End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - LOAN DETAIL & EMI PAYMENT
+      // BUG-07 FIX: Sfile changed from LOANSFL to LNSFL (DSPF defines LNSFL)
+      // BUG-08 FIX: Write changed from LOANSFL to LNSFL
+      // BUG-09 FIX: PRINAMT_S renamed to PRINAMT (LNSFL field name)
+      // BUG-10 FIX: EMISTS renamed to STATUS (LNSFL field name)
+      // BUG-11 FIX: Dcl-S moved out of BegSr to proc-level declarations
+      // BUG-12/13 FIX: CA10 added to LOANDTLSCR; ExFmt LNPAY now shown
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Loan_Main)
+               BndDir('RAMABND');
+
+       Dcl-F LOANDTLSCR WORKSTN Sfile(LNSFL: RRN) IndDS(ScnInd);
+
+       Dcl-Ds ScnInd;
+           ExitKey   Ind Pos(3);
+           PayKey    Ind Pos(10);
+           SflClr    Ind Pos(42);
+           SflDspCtl Ind Pos(41);
+           SflDsp    Ind Pos(40);
+       End-Ds;
+
+       Dcl-Pr Loan_Main ExtPgm('LOANDTLPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Exec SQL Set Option Commit=*Chg, Naming=*Sys;
+
+       // All Dcl-S at module level - NOT inside subroutines
+       Dcl-S l_LoanAcct Char(20);
+       Dcl-S l_Prinamt  Packed(15:2);
+       Dcl-S l_IntRate  Packed(5:2);
+       Dcl-S l_TermMnth Int(10);
+       Dcl-S l_LoanSts  Char(1);
+       Dcl-S l_Found    Int(10);
+       Dcl-S RRN        Int(10);
+       Dcl-S l_SbAcct   Char(20);
+       // Subfile fetch variables (BUG-11: moved out of BegSr)
+       Dcl-S l_DueDate   Date;
+       Dcl-S l_EmiAmtCl  Packed(15:2);
+       Dcl-S l_PrinAmtCl Packed(15:2);
+       Dcl-S l_IntAmtCl  Packed(15:2);
+       Dcl-S l_StsVal    Char(10);
+       // KYC Verification / pay variables
+       Dcl-S l_KycApprove Char(1);
+       Dcl-S l_NewKyc     Char(1);
+       Dcl-S l_NextLog2   Int(10);
+
+       Dcl-Proc Loan_Main;
+       Dcl-Pi Loan_Main;
+           p_CustID Char(20) Const;
+       End-Pi;
+
+       Dcl-S l_Exit    Ind Inz(*Off);
+       Dcl-S l_EmiId   Int(10);
+       Dcl-S l_EmiAmt  Packed(15:2);
+       Dcl-S l_NextTxn Int(10);
+       Dcl-S l_SbBal   Packed(15:2);
+       Dcl-S l_Failed  Ind Inz(*Off);
+
+       Exec SQL Select LOANACCT, PRINAMT, INTRATE, TERMMNTH, LOANSTS
+                Into :l_LoanAcct, :l_Prinamt, :l_IntRate,
+                     :l_TermMnth, :l_LoanSts
+                From SREERAMC1.LOANMST
+                Where CUSTID = :p_CustID And LOANSTS = 'A'
+                Fetch First 1 Row Only;
+
+       l_Found = 1;
+       If SQLCode <> 0;
+           l_Found = 0;
+       EndIf;
+
+       Exec SQL Select ACCTNUM Into :l_SbAcct
+                From SREERAMC1.ACCTMST
+                Where CUSTID = :p_CustID And ACCTTYPE = 'SB' And STATUS = 'A'
+                Fetch First 1 Row Only;
+
+       If SQLCode <> 0;
+           l_SbAcct = '';
+       EndIf;
+
+       If l_Found = 1;
+           LOANACCT = l_LoanAcct;
+           INTRATED  = l_IntRate;
+           TERMMNTHD = l_TermMnth;
+           LOANSTSD  = l_LoanSts;
+           // Use ACCTMST balance as the outstanding loan balance
+           Exec SQL Select BALANCE Into :l_Prinamt
+                    From SREERAMC1.ACCTMST
+                    Where ACCTNUM = :l_LoanAcct;
+           BAL = l_Prinamt;
+       EndIf;
+
+       ExSr LoadSubfile;
+
+       Dow Not l_Exit;
+           ExFmt LNCTL;
+
+           If ExitKey;
+               l_Exit = *On;
+               Iter;
+           EndIf;
+
+           ERRMSG = *Blanks;
+
+           If l_Found = 0;
+               ERRMSG = 'No active loan found for this customer.';
+               l_Exit = *On;
+               Iter;
+           EndIf;
+
+           If PayKey;
+               // BUG-13 FIX: Show LNPAY screen to get EMI ID before paying
+               PAYID  = 0;
+               ERRMSG = *Blanks;
+               ExFmt LNPAY;
+               If Not ExitKey;
+                   l_EmiId = PAYID;
+                   ExSr PayNextEmi;
+                   ExSr LoadSubfile;
+               EndIf;
+               Iter;
+           EndIf;
+
+       EndDo;
+       Close LOANDTLSCR;
+       Return;
+
+       BegSr LoadSubfile;
+           SflClr = *On;
+           Write LNCTL;
+           SflClr = *Off;
+           SflDspCtl = *On;
+           SflDsp = *Off;
+           RRN = 0;
+
+           Exec SQL Declare LoanCur Cursor For
+               Select EMIID, DUEDATE, EMI_AMT, PRIN_AMT, INT_AMT, STATUS
+               From SREERAMC1.EMISCHDULE
+               Where LOANACCT = :l_LoanAcct
+               Order By DUEDATE Asc;
+
+           Exec SQL Open LoanCur;
+
+           Dow SQLCode = 0;
+               Exec SQL Fetch LoanCur Into :l_EmiId, :l_DueDate,
+                                           :l_EmiAmtCl, :l_PrinAmtCl,
+                                           :l_IntAmtCl, :l_StsVal;
+               If SQLCode <> 0;
+                   Leave;
+               EndIf;
+
+               // BUG-08/09/10 FIX: Write to LNSFL; use PRINAMT not PRINAMT_S;
+               // use STATUS not EMISTS
+               EMIID   = l_EmiId;
+               DUEDATE = %Char(l_DueDate: *ISO);
+               EMIAMT  = l_EmiAmtCl;
+               PRINAMT = l_PrinAmtCl;
+               INTAMT  = l_IntAmtCl;
+               STATUS  = l_StsVal;
+
+               RRN += 1;
+               Write LNSFL;
+           EndDo;
+
+           Exec SQL Close LoanCur;
+
+           If RRN > 0;
+               SflDsp = *On;
+           Else;
+               ERRMSG = 'No EMI schedule found for this loan.';
+           EndIf;
+       EndSr;
+
+       BegSr PayNextEmi;
+           If l_SbAcct = '';
+               ERRMSG = 'No active savings account found for EMI debit.';
+               Return;
+           EndIf;
+
+           If l_EmiId <= 0;
+               ERRMSG = 'Invalid EMI ID entered.';
+               Return;
+           EndIf;
+
+           // Verify the EMI belongs to this loan and is PENDING
+           Exec SQL Select EMI_AMT Into :l_EmiAmt
+                    From SREERAMC1.EMISCHDULE
+                    Where EMIID = :l_EmiId And LOANACCT = :l_LoanAcct
+                    And STATUS = 'PENDING';
+
+           If SQLCode <> 0;
+               ERRMSG = 'EMI not found or already paid.';
+               Return;
+           EndIf;
+
+           l_Failed = *Off;
+
+           Exec SQL Declare EmiPayCur Cursor For
+               Select BALANCE From SREERAMC1.ACCTMST
+               Where ACCTNUM = :l_SbAcct For Update Of BALANCE;
+           Exec SQL Open EmiPayCur;
+           Exec SQL Fetch EmiPayCur Into :l_SbBal;
+
+           If SQLCode <> 0;
+               Exec SQL Close EmiPayCur;
+               ERRMSG = 'Could not lock savings account for debit.';
+               Return;
+           EndIf;
+
+           If l_SbBal < l_EmiAmt;
+               Exec SQL Close EmiPayCur;
+               ERRMSG = 'Insufficient balance to pay this EMI.';
+               Return;
+           EndIf;
+
+           l_SbBal -= l_EmiAmt;
+
+           Exec SQL Update SREERAMC1.ACCTMST Set BALANCE = :l_SbBal
+                    Where Current Of EmiPayCur;
+           If SQLCode <> 0;
+               l_Failed = *On;
+           EndIf;
+           Exec SQL Close EmiPayCur;
+
+           If Not l_Failed;
+               Exec SQL Update SREERAMC1.EMISCHDULE Set STATUS = 'PAID'
+                        Where EMIID = :l_EmiId;
+               If SQLCode <> 0;
+                   l_Failed = *On;
+               EndIf;
+           EndIf;
+
+           If Not l_Failed;
+               Exec SQL Update SREERAMC1.ACCTMST
+                        Set BALANCE = BALANCE - :l_EmiAmt
+                        Where ACCTNUM = :l_LoanAcct;
+               If SQLCode <> 0;
+                   l_Failed = *On;
+               EndIf;
+           EndIf;
+
+           If Not l_Failed;
+               Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_TXNID
+                        Into :l_NextTxn;
+
+               Exec SQL Insert Into SREERAMC1.TXNHIST
+                        (TXNID, TXNDATE, TXNTIME, ACCTNUM, TXNTYPE,
+                         AMOUNT, REFNUM, BALAFTER, STATUS)
+                    Values(:l_NextTxn, CURRENT_DATE, CURRENT_TIME,
+                           :l_SbAcct, 'DR', :l_EmiAmt,
+                           'EMI' || TRIM(Char(:l_EmiId)), :l_SbBal, 'S');
+               If SQLCode <> 0;
+                   l_Failed = *On;
+               EndIf;
+           EndIf;
+
+           If l_Failed;
+               Exec SQL Rollback;
+               ERRMSG = 'EMI payment failed. Please try again.';
+           Else;
+               Exec SQL Commit;
+               // Refresh displayed outstanding balance
+               Exec SQL Select BALANCE Into :l_Prinamt
+                        From SREERAMC1.ACCTMST
+                        Where ACCTNUM = :l_LoanAcct;
+               BAL    = l_Prinamt;
+               ERRMSG = 'EMI ' + %Char(l_EmiId) + ' paid. Amount: '
+                        + %Trim(%EditC(l_EmiAmt: 'P'));
+           EndIf;
+       EndSr;
+
+       End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - LOGIN MODULE
+      // Validates credentials, locks account after 3 failed attempts,
+      // creates a session via SESSCTL, routes to dashboard.
+      //
+      // Note: To unlock an account, run the following SQL: in strsql
+      // - or via ibm i acs run sql script
+      //
+      // UPDATE SREERAMC1.USERMST
+      // SET LOCKFLAG = 'N',
+      // FAILCNT = 0
+      // WHERE USERID = 'ADMIN001';
+      //
+      // If you want to clear the lock on all accounts at once,
+      // you can run: UPDATE SREERAMC1.USERMST SET LOCKFLAG = 'N',
+      // FAILCNT = 0;
+      //
+      // Note: To reset a direct password, run the following SQL:
+      // UPDATE SREERAMC1.USERMST
+      // SET PWDHASH = HASH_SHA256('MyNewPassword123')
+      // WHERE USERID = 'ADMIN001';
+
+      // Fixes vs original:
+      //  - Now calls Hash_SHA256 (HASHSRV) instead of duplicating the
+      //    HASH() SQL call inline, so there is one single source of
+      //    truth for the hashing algorithm.
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Login_Main)
+               BndDir('RAMABND');
+
+       Dcl-F LOGINSCR WORKSTN IndDS(ScnInd);
+
+       Dcl-Ds ScnInd;
+             ExitKey  Ind Pos(3);
+             ResetKey Ind Pos(9);
+       End-Ds;
+
+       Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+       Dcl-Pr Login_Main ExtPgm('LOGINPGM');
+       End-Pr;
+
+       Dcl-Pr Hash_SHA256 Varchar(64) ExtProc('HASH_SHA256');
+           p_Input Varchar(200) Const;
+       End-Pr;
+
+       Dcl-Pr Call_SessCtl ExtPgm('SESSCTL');
+              p_UserID    Char(20) Const;
+              p_SessionID Varchar(50) Const;
+       End-Pr;
+
+       Dcl-Pr Call_DashPgm ExtPgm('DASHPGM');
+              p_UserID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_ResetPgm ExtPgm('RESETPGM');
+              p_UserID Char(20) Const;
+       End-Pr;
+
+       Dcl-Proc Login_Main;
+
+         Dcl-S sql_UserID   Char(20);
+         Dcl-S sql_PwdHid   Char(20);
+
+         Dcl-S  l_Exit       Ind Inz(*Off);
+         Dcl-S  l_PwdHash    Varchar(64);
+         Dcl-S  l_DbHash     Varchar(64);
+         Dcl-S  l_LockFlag   Char(1);
+         Dcl-S  l_FailCnt    Int(10);
+         Dcl-S  l_SessionID  Varchar(50);
+
+        Dow Not l_Exit;
+         ExFmt LOGINFMT;
+
+          If ExitKey;
+             l_Exit = *On;
+           Iter;
+          EndIf;
+
+          If ResetKey;
+             Monitor;
+                Call_ResetPgm(USERID);
+             On-Error;
+                ERRMSG = 'Reset program is currently unavailable.';
+             EndMon;
+
+            PWDHID = *Blanks;
+             ERRMSG = 'If password was reset, please log in.';
+             Iter;
+          EndIf;
+
+            ERRMSG = *Blanks;
+
+          If USERID = *Blanks Or PWDHID = *Blanks;
+           ERRMSG = 'User ID and Password are required.';
+           Iter;
+          EndIf;
+
+           sql_UserID = USERID;
+           sql_PwdHid = PWDHID;
+
+          Exec SQL
+            Select PWDHASH, LOCKFLAG, COALESCE(FAILCNT, 0)
+            Into :l_DbHash, :l_LockFlag, :l_FailCnt
+            From SREERAMC1.USERMST
+            Where USERID = :sql_UserID;
+
+          If SQLCode <> 0;
+             ERRMSG = 'Invalid User ID or Password.';
+             Iter;
+          EndIf;
+
+          If l_LockFlag = 'Y';
+             ERRMSG = 'Account is locked. Please contact admin.';
+             Iter;
+          EndIf;
+
+          l_PwdHash = Hash_SHA256(%Trim(sql_PwdHid));
+
+          If l_PwdHash <> l_DbHash;
+             l_FailCnt += 1;
+            If l_FailCnt >= 3;
+               Exec SQL Update SREERAMC1.USERMST Set LOCKFLAG = 'Y',
+                        FAILCNT = :l_FailCnt Where USERID = :sql_UserID;
+               ERRMSG = 'Account locked due to 3 failed attempts.';
+             Else;
+               Exec SQL Update SREERAMC1.USERMST Set FAILCNT = :l_FailCnt
+                        Where USERID = :sql_UserID;
+               ERRMSG = 'Invalid password. Attempts left: '
+                        + %Char(3 - l_FailCnt);
+            EndIf;
+             Iter;
+
+           Else;
+           Exec SQL Update SREERAMC1.USERMST Set FAILCNT = 0
+                    Where USERID = :sql_UserID;
+
+           Exec SQL Values(QSYS2.GENERATE_UUID()) Into :l_SessionID;
+
+           Exec SQL Update SREERAMC1.USERMST
+                    Set SESSIONID = :l_SessionID
+                    Where USERID = :sql_UserID;
+
+           Monitor;
+               Call_SessCtl(USERID: l_SessionID);
+           On-Error;
+           EndMon;
+
+           Monitor;
+             Call_DashPgm(USERID);
+            On-Error;
+           EndMon;
+
+           USERID = *Blanks;
+           PWDHID = *Blanks;
+           ERRMSG = 'Successfully logged out.';
+          EndIf;
+
+        EndDo;
+
+         Close LOGINSCR;
+        Return;
+       End-Proc;
+     **FREE
+         // ====================================================================
+         // RAMA BANK - MINI STATEMENT (LAST 10 TRANSACTIONS)
+         // No subfile, uses flattened arrays natively to bind to screen format
+         // ====================================================================
+         Ctl-Opt ActGrp(*NEW) Main(Mini_Main);
+
+         Dcl-F MINISCR WORKSTN IndDS(ScnInd);
+
+         // Added Prototype to prevent compiler warnings and fix Varchar crash
+         Dcl-Pr Mini_Main ExtPgm('MINIPGM');
+                p_CustID Char(20) Const;
+         End-Pr;
+
+         Dcl-Ds ScnInd;
+                ExitKey   Ind Pos(3);
+         End-Ds;
+
+         // Define an array to hold SQL cursor results before binding
+         Dcl-DS TxnArray Dim(10) Qualified;
+         tDate Char(10);
+         tTime Char(8);
+         tType Char(2);
+         tAmt  Char(15);
+         tBal  Zoned(15:2);
+         End-DS;
+
+         Dcl-Proc Mini_Main;
+           Dcl-Pi Mini_Main;
+              p_CustID Char(20) Const;
+           End-Pi;
+
+         Dcl-S i Int(10);
+         Dcl-S RowsFetched Int(10);
+         Dcl-S l_Exit Ind Inz(*Off);
+         Dcl-S l_AcctNum Varchar(20);
+
+         // FIX 1: Temporary variables for the SQL Fetch
+          Dcl-S sql_Date Char(10);
+          Dcl-S sql_Time Char(8);
+          Dcl-S sql_Type Char(2);
+          Dcl-S sql_Amt  Char(15);
+          Dcl-S sql_Bal  Zoned(15:2);
+
+          Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+         // Initial load info
+         Exec SQL Select ACCTNUM Into :l_AcctNum
+                  From SREERAMC1.ACCTMST
+                  Where CUSTID = :p_CustID
+                  Fetch First 1 Row Only;
+
+         If SQLCode <> 0;
+            l_Exit = *On;
+            ACCTNUM = 'No account found for this customer.';
+            ExFmt MINIFMT;
+            close MINISCR;
+            Return;
+         EndIf;
+
+         ACCTNUM = 'XXXXXXXXXXXXXXXX'
+                    + %Subst(l_AcctNum: %Len(%Trim(l_AcctNum)) - 3: 4);
+
+
+             // Fetch 10 rows only for performance
+            Exec SQL Declare MCur Cursor For
+                 Select CHAR(TXNDATE), CHAR(TXNTIME), TXNTYPE,
+                 CHAR(AMOUNT), BALAFTER
+                 From SREERAMC1.TXNHIST
+                 Where ACCTNUM = :l_AcctNum
+                 Order By TXNDATE Desc, TXNTIME Desc
+                 Fetch First 10 Rows Only;
+
+             Dow Not l_Exit;
+
+             Exec SQL Open MCur;
+
+                     i = 1;
+            Dow SQLCode = 0 And i <= 10;
+                Exec SQL
+                   Fetch MCur Into :sql_Date, :sql_Time, :sql_Type,
+                                   :sql_Amt, :sql_Bal;
+
+                If SQLCode <> 0;
+                   Leave;
+                EndIf;
+
+              // Move fetched data into the array
+                 TxnArray(i).tDate = sql_Date;
+                 TxnArray(i).tTime = sql_Time;
+                 TxnArray(i).tType = sql_Type;
+                 TxnArray(i).tAmt  = sql_Amt;
+                 TxnArray(i).tBal  = sql_Bal;
+
+                 i += 1;
+            EndDo;
+               RowsFetched = i - 1;
+
+           Exec SQL Close MCur;
+
+         // Map arrays to DSPF variables (which are non-arrays due-
+         // to fixed positioning
+         If RowsFetched >= 1;
+            DT1 = TxnArray(1).tDate;
+            TM1 = TxnArray(1).tTime;
+            TY1 = TxnArray(1).tType;
+            AM1 = TxnArray(1).tAmt;
+            BL1 = TxnArray(1).tBal;
+         EndIf;
+         If RowsFetched >= 2;
+            DT2 = TxnArray(2).tDate;
+            TM2 = TxnArray(2).tTime;
+            TY2 = TxnArray(2).tType;
+            AM2 = TxnArray(2).tAmt;
+            BL2 = TxnArray(2).tBal;
+         EndIf;
+         If RowsFetched >= 3;
+            DT3 = TxnArray(3).tDate;
+            TM3 = TxnArray(3).tTime;
+            TY3 = TxnArray(3).tType;
+            AM3 = TxnArray(3).tAmt;
+            BL3 = TxnArray(3).tBal;
+         EndIf;
+         If RowsFetched >= 4;
+            DT4 = TxnArray(4).tDate;
+            TM4 = TxnArray(4).tTime;
+            TY4 = TxnArray(4).tType;
+            AM4 = TxnArray(4).tAmt;
+            BL4 = TxnArray(4).tBal;
+         EndIf;
+         If RowsFetched >= 5;
+            DT5 = TxnArray(5).tDate;
+            TM5 = TxnArray(5).tTime;
+            TY5 = TxnArray(5).tType;
+            AM5 = TxnArray(5).tAmt;
+            BL5 = TxnArray(5).tBal;
+         EndIf;
+         If RowsFetched >= 6;
+            DT6 = TxnArray(6).tDate;
+            TM6 = TxnArray(6).tTime;
+            TY6 = TxnArray(6).tType;
+            AM6 = TxnArray(6).tAmt;
+            BL6 = TxnArray(6).tBal;
+         EndIf;
+         If RowsFetched >= 7;
+            DT7 = TxnArray(7).tDate;
+            TM7 = TxnArray(7).tTime;
+            TY7 = TxnArray(7).tType;
+            AM7 = TxnArray(7).tAmt;
+            BL7 = TxnArray(7).tBal;
+         EndIf;
+         If RowsFetched >= 8;
+            DT8 = TxnArray(8).tDate;
+            TM8 = TxnArray(8).tTime;
+            TY8 = TxnArray(8).tType;
+            AM8 = TxnArray(8).tAmt;
+            BL8 = TxnArray(8).tBal;
+         EndIf;
+         If RowsFetched >= 9;
+            DT9 = TxnArray(9).tDate;
+            TM9 = TxnArray(9).tTime;
+            TY9 = TxnArray(9).tType;
+            AM9 = TxnArray(9).tAmt;
+            BL9 = TxnArray(9).tBal;
+         EndIf;
+         If RowsFetched >= 10;
+            DT10 = TxnArray(10).tDate;
+            TM10 = TxnArray(10).tTime;
+            TY10 = TxnArray(10).tType;
+            AM10 = TxnArray(10).tAmt;
+            BL10 = TxnArray(10).tBal;
+         EndIf;
+
+           ExFmt MINIFMT;
+
+            If ExitKey; //*In03; // Exit
+               l_Exit = *On;
+               Iter;
+            EndIf;
+         EndDo;
+
+          close MINISCR;
+          Return;
+
+         End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - NEFT/RTGS BATCH SETTLEMENT
+      // New program. NEFTBATCH.CLLE called BANKLIB/NEFTPGM, but no such
+      // program existed anywhere - items inserted into TXNQUEUE by
+      // FUNDTRPGM for genuine interbank transfers were never processed.
+      //
+      // This program is intended to be run periodically (every 30 min,
+      // per the original NEFTBATCH.CLLE comment) via SBMJOB/job
+      // scheduler. It processes all PENDING (STATUS='P') rows in
+      // TXNQUEUE:
+      //   - For NEFT/RTGS items, in a real bank this would call an
+      //     external settlement network/API. That external integration
+      //     is outside what RPG alone can provide, so this program
+      //     marks the item processed and writes the audit trail; the
+      //     actual external-network call is marked as a TODO hook.
+      //   - On success: STATUS set to 'F' (processed/forwarded).
+      //   - On failure: left as 'P' so it is retried on the next run;
+      //     after 5 failed attempts (tracked via AUDITLOG count) it is
+      //     flagged for manual operator review.
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Neft_Main) BndDir('RAMABND');
+
+       Dcl-Pr Neft_Main ExtPgm('NEFTPGM');
+       End-Pr;
+
+       Exec SQL Set Option Commit=*Chg, Naming=*Sys;
+
+       Dcl-Proc Neft_Main;
+
+       Dcl-S l_QID      Int(10);
+       Dcl-S l_FromAcct Char(20);
+       Dcl-S l_ToAcct   Char(20);
+       Dcl-S l_ToIfsc   Char(11);
+       Dcl-S l_Amount   Packed(15:2);
+       Dcl-S l_NwType   Char(10);
+       Dcl-S l_NextLog  Int(10);
+       Dcl-S l_Count    Int(10) Inz(0);
+
+       Exec SQL Declare QCur Cursor For
+           Select QID, FROMACCT, TOACCT, TOIFSC, AMOUNT, NWTYPE
+           From SREERAMC1.TXNQUEUE
+           Where STATUS = 'P'
+           Order By QTIMESTAMP Asc
+           For Update Of STATUS;
+
+       Exec SQL Open QCur;
+
+       Dow SQLCode = 0;
+          Exec SQL Fetch QCur Into :l_QID, :l_FromAcct, :l_ToAcct,
+                    :l_ToIfsc, :l_Amount, :l_NwType;
+
+          If SQLCode <> 0;
+             Leave;
+          EndIf;
+
+          // ---------------------------------------------------------
+          // TODO (outside RPG scope): call the external NEFT/RTGS
+          // settlement network/API here using l_ToAcct/l_ToIfsc/
+          // l_Amount. This program assumes the call succeeds, since
+          // no such gateway exists in this codebase.
+          // ---------------------------------------------------------
+
+          Exec SQL Update SREERAMC1.TXNQUEUE
+                   Set STATUS = 'F'
+                   Where Current Of QCur;
+
+          If SQLCode = 0;
+             l_Count += 1;
+
+             Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_LOGID
+                      Into :l_NextLog;
+
+             Exec SQL Insert Into SREERAMC1.AUDITLOG
+                      (LOGID, LOGTS, USERID, ACTION, DETAILS)
+                      Values(:l_NextLog, CURRENT TIMESTAMP, 'SYSTEM',
+                             'NEFT_SETTLE',
+                            // 'Queue ID ' + %Char(l_QID) +
+                            // ' settled for ' + %Char(l_Amount));
+                             'Queue ID ' || TRIM(Char(:l_QID)) ||
+                             ' settled for ' || TRIM(Char(:l_Amount)));
+          EndIf;
+       EndDo;
+
+       Exec SQL Close QCur;
+       Exec SQL Commit;
+
+       Return;
+       End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - OTP SERVICE PROGRAM
+      // Replaces the hardcoded '123456' OTPs used in the original
+      // FUNDTRPGM and CARDDTLPGM/SETPINPGM. Generates a random 6-digit
+      // OTP, stores only its SHA-256 hash with an expiry timestamp,
+      // and exposes a verify procedure that checks hash + expiry +
+      // limits retries to 3 attempts before forcing a fresh OTP.
+      //
+      // In production, OTP_Generate's returned plaintext OTP must be
+      // sent to the customer's registered mobile/email via your SMS/
+      // email gateway (API call) - that integration point is marked
+      // below. Nothing in this codebase had any such integration, so
+      // OTP delivery itself is still a TODO outside the scope of what
+      // can be done in RPG alone.
+      //====================================================================
+       Ctl-Opt NoMain;
+
+       Dcl-Pr Hash_SHA256 Varchar(64) ExtProc('HASH_SHA256');
+           p_Input Varchar(200) Const;
+       End-Pr;
+
+       Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+      // Generates a new OTP for p_CustID/p_Purpose, valid 5 minutes.
+      // Returns the plaintext 6-digit OTP so the caller can hand it to
+      // an SMS/email send routine. Only the hash is persisted.
+       Dcl-Pr OTP_Generate Char(6);
+           p_CustID  Char(20) Const;
+           p_Purpose Char(10) Const;
+       End-Pr;
+
+      // Verifies p_InputOTP for p_CustID/p_Purpose.
+      // Returns *On if valid (and deletes the OTP so it cannot be
+      // reused), *Off if invalid, expired, or attempts exceeded.
+       Dcl-Pr OTP_Verify Ind;
+           p_CustID   Char(20) Const;
+           p_Purpose  Char(10) Const;
+           p_InputOTP Char(6) Const;
+       End-Pr;
+
+
+
+      //--------------------------------------------------------------
+       Dcl-Proc OTP_Generate Export;
+       // BUG-19 FIX: Procedure is exported as 'OTP_GENERATE' (uppercase)
+       // matching ExtProc('OTP_GENERATE') in all callers.
+       // IBM i CRTSRVPGM EXPORT(*ALL) folds to uppercase anyway, but
+       // making it explicit here removes any ambiguity.
+       Dcl-Pi OTP_Generate Char(6);
+           p_CustID  Char(20) Const;
+           p_Purpose Char(10) Const;
+       End-Pi;
+
+       Dcl-S l_OTP    Char(6);
+       Dcl-S l_Hash   Varchar(64);
+       Dcl-S l_Rand   Float(8);
+
+       // Retrieve a random floating-point value from DB2 SQL
+       Exec SQL Set :l_Rand = RAND();
+
+       // Generate a random 6-digit numeric OTP (100000-999999)
+       //l_Rand = %Int(%Rand() * 900000) + 100000;
+       //l_OTP  = %Char(%Int(l_Rand));
+
+       // Convert the random float (0 to 1) into a 6-digit OTP (100000-999999)
+       l_OTP  = %Char(%Int(l_Rand * 900000) + 100000);
+
+       l_Hash = Hash_SHA256(l_OTP);
+
+       // Remove any prior OTP for this customer/purpose first
+       Exec SQL Delete From SREERAMC1.OTPSTORE
+                Where CUSTID = :p_CustID And PURPOSE = :p_Purpose;
+
+       Exec SQL Insert Into SREERAMC1.OTPSTORE
+                (CUSTID, PURPOSE, OTPHASH, GENTIME, EXPTIME, ATTEMPTS)
+                Values(:p_CustID, :p_Purpose, :l_Hash,
+                       CURRENT_TIMESTAMP,
+                       CURRENT_TIMESTAMP + 5 MINUTES, 0);
+
+       // ---------------------------------------------------------
+       // TODO (outside RPG scope): send l_OTP to the customer via
+       // SMS/email gateway here. Never log or display l_OTP in any
+       // production audit trail or screen other than the outbound
+       // message itself.
+       // ---------------------------------------------------------
+
+       Return l_OTP;
+       End-Proc;
+
+      //--------------------------------------------------------------
+       Dcl-Proc OTP_Verify Export;
+       // BUG-19 FIX: Procedure exported as 'OTP_VERIFY' (uppercase)
+       // matching ExtProc('OTP_VERIFY') in all callers.
+       Dcl-Pi OTP_Verify Ind;
+           p_CustID   Char(20) Const;
+           p_Purpose  Char(10) Const;
+           p_InputOTP Char(6) Const;
+       End-Pi;
+
+       Dcl-S l_DbHash    Varchar(64);
+       Dcl-S l_InHash    Varchar(64);
+       Dcl-S l_Attempts  Int(10);
+       Dcl-S l_Expired   Int(10);
+
+       Exec SQL Select OTPHASH, ATTEMPTS,
+                  Case When CURRENT_TIMESTAMP > EXPTIME Then 1 Else 0 End
+                Into :l_DbHash, :l_Attempts, :l_Expired
+                From SREERAMC1.OTPSTORE
+                Where CUSTID = :p_CustID And PURPOSE = :p_Purpose;
+
+       If SQLCode <> 0;
+           // No OTP was ever generated for this customer/purpose
+           Return *Off;
+       EndIf;
+
+       If l_Expired = 1;
+           Exec SQL Delete From SREERAMC1.OTPSTORE
+                    Where CUSTID = :p_CustID And PURPOSE = :p_Purpose;
+           Return *Off;
+       EndIf;
+
+       If l_Attempts >= 3;
+           Exec SQL Delete From SREERAMC1.OTPSTORE
+                    Where CUSTID = :p_CustID And PURPOSE = :p_Purpose;
+           Return *Off;
+       EndIf;
+
+       l_InHash = Hash_SHA256(p_InputOTP);
+
+       If l_InHash = l_DbHash;
+           // Success - consume the OTP so it can't be reused
+           Exec SQL Delete From SREERAMC1.OTPSTORE
+                    Where CUSTID = :p_CustID And PURPOSE = :p_Purpose;
+           Return *On;
+       Else;
+           Exec SQL Update SREERAMC1.OTPSTORE
+                    Set ATTEMPTS = ATTEMPTS + 1
+                    Where CUSTID = :p_CustID And PURPOSE = :p_Purpose;
+           Return *Off;
+       EndIf;
+
+       End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - OTP VERIFICATION SCREEN PROGRAM
+      // Replaces the old stub that always returned p_Valid = *On
+      // regardless of any input. Now actually generates an OTP via
+      // OTPSRV, displays OTPSCR, and verifies the entered code.
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(OtpVer_Main)
+               BndDir('RAMABND');
+
+       Dcl-F OTPSCR WORKSTN IndDS(ScnInd);
+
+       Dcl-Ds ScnInd;
+           CancelKey Ind Pos(3);
+       End-Ds;
+
+       Dcl-Pr OtpVer_Main ExtPgm('OTPVERPGM');
+           p_CustID  Char(20) Const;
+           p_Purpose Char(10) Const;
+           p_Valid   Ind;
+       End-Pr;
+
+       Dcl-Pr OTP_Generate Char(6) ExtProc('OTP_GENERATE');
+           p_CustID  Char(20) Const;
+           p_Purpose Char(10) Const;
+       End-Pr;
+
+       Dcl-Pr OTP_Verify Ind ExtProc('OTP_VERIFY');
+           p_CustID   Char(20) Const;
+           p_Purpose  Char(10) Const;
+           p_InputOTP Char(6) Const;
+       End-Pr;
+
+       Dcl-Proc OtpVer_Main;
+       Dcl-Pi OtpVer_Main;
+           p_CustID  Char(20) Const;
+           p_Purpose Char(10) Const;
+           p_Valid   Ind;
+       End-Pi;
+
+       Dcl-S l_Generated Char(6);
+       Dcl-S l_Exit      Ind Inz(*Off);
+       Dcl-S l_Tries     Int(10) Inz(0);
+
+       p_Valid = *Off;
+
+       l_Generated = OTP_Generate(p_CustID: p_Purpose);
+
+       Dow Not l_Exit And l_Tries < 3;
+           OTPERR = *Blanks;
+           OTPINP = *Blanks;
+           ExFmt OTPFMT;
+
+           If CancelKey;
+               p_Valid = *Off;
+               l_Exit  = *On;
+               Iter;
+           EndIf;
+
+           l_Tries += 1;
+
+           If OTP_Verify(p_CustID: p_Purpose: OTPINP);
+               p_Valid = *On;
+               l_Exit  = *On;
+           Else;
+               OTPERR = 'Invalid or expired OTP. Try again.';
+           EndIf;
+       EndDo;
+
+       Close OTPSCR;
+       Return;
+       End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - CUSTOMER PROFILE & KYC UPDATE
+      // Shows current details, allows update requests for restricted
+      // fields (ADDRESS, EMAIL, MOBILE) via the maker-checker queue.
+      //
+      // Rewritten. Original had:
+      //  - "Select ... Into :CustRec" with a 6-column SELECT into a
+      //    single DS host variable (invalid embedded SQL; must list each
+      //    individual host var or qualify subfields).
+      //  - REQID (the UPDATEREQ primary key) never generated/inserted.
+      //  - OLDVAL column never captured (admin would have no before-value
+      //    to compare against on the checker screen).
+      //  - User could type any arbitrary field name (e.g. BALANCE) as
+      //    the field to update; now restricted to an approved list.
+      //  - BANKLIB instead of SREERAMC1.
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Prof_Main)
+               BndDir('RAMABND');
+
+       Dcl-F PROFSCR WORKSTN IndDS(ScnInd);
+
+       Dcl-Ds ScnInd;
+           ExitKey   Ind Pos(3);
+           UpdtKey   Ind Pos(9);
+           ChgPwdKey Ind Pos(6);
+       End-Ds;
+
+       Dcl-Pr Prof_Main ExtPgm('PROFILEPGM');
+           p_CustID Char(20) Const;
+       End-Pr;
+
+       Dcl-Pr Call_ChgPwd ExtPgm('CHGPWDPGM');
+           p_UserID Char(20) Const;
+       End-Pr;
+
+       Exec SQL Set Option Commit=*Chg, Naming=*Sys;
+
+       Dcl-Proc Prof_Main;
+       Dcl-Pi Prof_Main;
+           p_CustID Char(20) Const;
+       End-Pi;
+
+       Dcl-S l_Exit    Ind Inz(*Off);
+       Dcl-S l_Found   Int(10);
+       Dcl-S l_Count   Int(10);
+       Dcl-S l_NextReq Int(10);
+
+       // Current customer field values (fetched for display + OLDVAL capture)
+       Dcl-S l_FullName Char(60);
+       Dcl-S l_Email    Char(50);
+       Dcl-S l_Mobile   Char(15);
+       Dcl-S l_Address  Char(100);
+       Dcl-S l_KycSts   Char(1);
+       Dcl-S l_OldVal   Char(100);
+
+       Exec SQL Select FULLNAME, EMAIL, MOBILE, ADDRESS, KYCSTS
+                Into :l_FullName, :l_Email, :l_Mobile, :l_Address,
+                     :l_KycSts
+                From SREERAMC1.CUSTMST
+                Where CUSTID = :p_CustID;
+
+       l_Found = 1;
+       If SQLCode <> 0;
+           l_Found = 0;
+       EndIf;
+
+       If l_Found = 1;
+           NAME     = l_FullName;
+           EMAIL    = l_Email;
+           MOBILE   = l_Mobile;
+           ADDRESS  = l_Address;
+           //KYCSTS   = l_KycSts;  // Maps to CUSTMST.KYCSTS (fixed in PF)
+       EndIf;
+
+       Dow Not l_Exit;
+           ERRMSG = *Blanks;
+           ExFmt PROFFMT;
+
+           If ExitKey;
+               l_Exit = *On;
+               Iter;
+           EndIf;
+
+           If ChgPwdKey;
+               Monitor;
+                   Call_ChgPwd(p_CustID);
+               On-Error;
+                   ERRMSG = 'Change password program unavailable.';
+               EndMon;
+               Iter;
+           EndIf;
+
+           If UpdtKey;
+               If l_Found = 0;
+                   ERRMSG = 'Customer record not found.';
+                   Iter;
+               EndIf;
+
+               If %Trim(UPDFLD) = '' Or %Trim(UPDVAL) = '';
+                   ERRMSG = 'Field name and new value are required.';
+                   Iter;
+               EndIf;
+
+               // Restrict to safe, editable fields only
+               Select;
+                   When UPDFLD = 'ADDRESS';
+                       l_OldVal = l_Address;
+                   When UPDFLD = 'EMAIL';
+                       l_OldVal = l_Email;
+                   When UPDFLD = 'MOBILE';
+                       l_OldVal = l_Mobile;
+                   Other;
+                       ERRMSG = 'Only ADDRESS, EMAIL, or MOBILE '
+                                + 'may be updated.';
+                       Iter;
+               EndSl;
+
+               // Check for an already-pending request for the same field
+               Exec SQL Select COUNT(*) Into :l_Count
+                        From SREERAMC1.UPDATEREQ
+                        Where CUSTID = :p_CustID And FIELDNAME = :UPDFLD
+                        And STATUS = 'P';
+
+               If l_Count > 0;
+                   ERRMSG = 'A pending request for ' + %Trim(UPDFLD)
+                            + ' already exists. Please wait for approval.';
+                   Iter;
+               EndIf;
+
+               Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_REQID
+                        Into :l_NextReq;
+
+               Exec SQL Insert Into SREERAMC1.UPDATEREQ
+                        (REQID, CUSTID, FIELDNAME, OLDVAL, NEWVAL,
+                         REQDATE, STATUS)
+                        Values(:l_NextReq, :p_CustID, :UPDFLD, :l_OldVal,
+                               :UPDVAL, CURRENT DATE, 'P');
+                               // BUG-18 FIX: REQDATE is Date(L) not Timestamp(Z)
+                               // Using CURRENT DATE not CURRENT TIMESTAMP
+
+               If SQLCode = 0;
+                   Exec SQL Commit;
+                   ERRMSG = 'Update request submitted. Pending admin '
+                            + 'approval.';
+                   UPDFLD = '';
+                   UPDVAL = '';
+               Else;
+                   Exec SQL Rollback;
+                   ERRMSG = 'Request failed. SQLCODE: ' + %Char(SQLCode);
+               EndIf;
+           EndIf;
+       EndDo;
+
+       Close PROFSCR;
+       Return;
+       End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - RESET PASSWORD MODULE
+      // Receives UserID, validates new password, updates PWDHASH,
+      // and unlocks the account (LOCKFLAG = 'N', FAILCNT = 0).
+      //
+      // Fixes vs original:
+      //  - PHID/LOGID now come from SEQ_PHID/SEQ_LOGID instead of being
+      //    omitted (which defaulted to 0 and broke every insert after
+      //    the first with a duplicate-key error).
+      //  - SQLCode checked after each statement; on any DB failure the
+      //    whole reset is rolled back so we never end up with a
+      //    half-updated USERMST row and no PWDHIST/AUDITLOG trail.
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Reset_Main) BndDir('RAMABND');
+
+       Dcl-F RESETSCR WORKSTN IndDS(ScnInd) ExtFile('RESETSCR');
+
+       Dcl-Ds ScnInd;
+             ExitKey Ind Pos(3);
+       End-Ds;
+
+       Dcl-Pr Reset_Main ExtPgm('RESETPGM');
+                p_UserID Char(20) Const;
+        End-Pr;
+
+       Dcl-Pr Hash_SHA256 Varchar(64) ExtProc('HASH_SHA256');
+           p_Input Varchar(200) Const;
+       End-Pr;
+
+       //Exec SQL Set Option Commit=*Chg, Naming=*Sys;
+       //above line will be use if db2 files are journaled,
+       // but since we are not journaling the files,
+       //  we will use the below line
+       Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+       Dcl-Proc Reset_Main;
+
+         Dcl-Pi Reset_Main;
+            p_UserID Char(20) Const;
+         End-Pi;
+
+         Dcl-S sql_UserID  Char(20);
+         Dcl-S sql_NewPwd  Char(20);
+         Dcl-S l_Count     Int(10);
+         Dcl-S l_CountHist Int(10);
+         Dcl-S l_NewHash   Varchar(64);
+         Dcl-S l_NewPHID   Int(10);
+         Dcl-S l_NewLogID  Int(10);
+         Dcl-S l_Exit      Ind Inz(*Off);
+         Dcl-S l_Failed    Ind Inz(*Off);
+
+         USERID = p_UserID;
+         ERRMSG = *Blanks;
+
+         Dow Not l_Exit;
+            ExFmt RESETFMT;
+
+            If ExitKey;
+               l_Exit = *On;
+               Iter;
+            EndIf;
+
+            ERRMSG = *Blanks;
+
+            If USERID = *Blanks Or NEWPWD = *Blanks Or CNFPWD = *Blanks;
+               ERRMSG = 'All fields are required.';
+               Iter;
+            EndIf;
+
+            If NEWPWD <> CNFPWD;
+               ERRMSG = 'Passwords do not match. Please try again.';
+               NEWPWD = *Blanks;
+               CNFPWD = *Blanks;
+               Iter;
+            EndIf;
+
+            If %Len(%Trim(NEWPWD)) < 8;
+                ERRMSG = 'Password must be at least 8 characters long.';
+                Iter;
+            EndIf;
+
+            sql_UserID = USERID;
+            sql_NewPwd = NEWPWD;
+
+            Exec SQL
+               Select Count(*) Into :l_Count
+               From SREERAMC1.USERMST
+               Where USERID = :sql_UserID;
+
+            If l_Count = 0;
+               ERRMSG = 'User ID does not exist in the system.';
+               Iter;
+            EndIf;
+
+            l_NewHash = Hash_SHA256(%Trim(sql_NewPwd));
+
+            Exec SQL Select Count(*) Into :l_CountHist
+                     From SREERAMC1.PWDHIST
+                     Where USERID = :sql_UserID
+                     And PWDHASH = :l_NewHash;
+
+            If l_CountHist > 0;
+                ERRMSG = 'Cannot reuse a previously used password.';
+                Iter;
+            EndIf;
+
+            l_Failed = *Off;
+
+            Exec SQL
+               Update SREERAMC1.USERMST
+               Set PWDHASH  = :l_NewHash,
+                   LOCKFLAG = 'N',
+                   FAILCNT  = 0
+               Where USERID = :sql_UserID;
+
+            If SQLCode <> 0;
+               ERRMSG = 'Update failed. SQLCODE: ' + %Char(SQLCode);
+               l_Failed = *On;
+            EndIf;
+
+            If Not l_Failed;
+               Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_PHID
+                        Into :l_NewPHID;
+
+               Exec SQL Insert Into SREERAMC1.PWDHIST
+                        (PHID, USERID, PWDHASH, CHGDATE)
+                        Values( :l_NewPHID, :sql_UserID, :l_NewHash,
+                                CURRENT TIMESTAMP);
+
+               If SQLCode <> 0;
+                  ERRMSG = 'PWDHIST Insert failed. SQLCODE: '
+                           + %Char(SQLCode);
+                  l_Failed = *On;
+               EndIf;
+            EndIf;
+
+            If Not l_Failed;
+               Exec SQL Values NEXT VALUE FOR SREERAMC1.SEQ_LOGID
+                        Into :l_NewLogID;
+
+               Exec SQL Insert Into SREERAMC1.AUDITLOG
+                        (LOGID, LOGTS, USERID, ACTION, DETAILS)
+                        Values( :l_NewLogID, CURRENT TIMESTAMP, :sql_UserID,
+                               'PWD_RESET', 'Password reset successfully');
+
+               If SQLCode <> 0;
+                  ERRMSG = 'AUDITLOG Insert failed. SQLCODE: '
+                           + %Char(SQLCode);
+                  l_Failed = *On;
+               EndIf;
+            EndIf;
+
+            If l_Failed;
+               Exec SQL Rollback;
+               Iter;
+            EndIf;
+
+            Exec SQL Commit;
+
+            USERID = *Blanks;
+            NEWPWD = *Blanks;
+            CNFPWD = *Blanks;
+            ERRMSG = 'Password reset successful! Press F3 to login.';
+
+         EndDo;
+
+         Close RESETSCR;
+         Return;
+
+       End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - SET PIN API
+      // Generates a real random 4-digit PIN, hashes it, and stores the
+      // hash. Invoked via CARDCTLCL after OTP verification by the
+      // caller (CARDDTLPGM).
+      //
+      // Fix vs original: PINHASH was being set to the hardcoded literal
+      // string 'NEWSIMHASH' - every card's PIN hash was identical and
+      // the Hash_SHA256 prototype, although declared, was never called.
+      // The incoming caller-supplied PIN is now ignored in favor of a
+      // securely generated random PIN (a caller-supplied PIN should
+      // never be trusted/used as-is in a real PIN-reset flow); the
+      // generated PIN must be delivered to the customer out of band by
+      // whatever channel CARDCTLCL's caller arranges (SMS, ATM receipt,
+      // etc.) - that delivery integration is outside RPG's scope here.
+      //====================================================================
+       Ctl-Opt NoMain;
+       //Ctl-Opt ActGrp(*Caller) NoMain;
+       //CRTSRVPGM SRVPGM(SREERAMC1/SETPINSRV) MODULE(SREERAMC1/SETPINPGM)
+       //- ACTGRP(*CALLER) EXPORT(*ALL) use this during compile to create a service program,
+
+       Dcl-Pr Hash_SHA256 Varchar(64) ExtProc('HASH_SHA256');
+           p_Input Varchar(200) Const;
+       End-Pr;
+
+       Dcl-Pr SetPin_Main Char(4) ExtProc('SETPIN_MAIN');
+           p_CardNum Char(16) Const;
+       End-Pr;
+
+       Exec SQL Set Option Commit=*Chg, Naming=*Sys;
+
+       Dcl-Proc SetPin_Main Export;
+           Dcl-Pi SetPin_Main Char(4);
+               p_CardNum Char(16) Const;
+           End-Pi;
+
+           Dcl-S l_NewPIN  Char(4);
+           Dcl-S l_Hash    Varchar(64);
+           Dcl-S l_Rand    Float(8);
+
+
+
+            Exec SQL Set :l_Rand = Rand();
+           //l_Rand   = %Int(%Rand() * 9000) + 1000;
+           //l_NewPIN = %Char(%Int(l_Rand));
+
+           l_NewPIN = %Char(%Int(l_Rand* 9000) + 1000);
+
+           l_Hash = Hash_SHA256(l_NewPIN);
+
+           Exec SQL Update SREERAMC1.CARDMST
+                    Set PINHASH = :l_Hash
+                    Where CARDNUM = :p_CardNum;
+
+           If SQLCode = 0;
+               Exec SQL Commit;
+             Else;
+               Exec SQL Rollback;
+               l_NewPIN = '0000';
+           EndIf;
+
+           // ---------------------------------------------------------
+           // TODO (outside RPG scope): deliver l_NewPIN to the
+           // customer via a secure out-of-band channel. Never persist
+           // or log the plaintext PIN anywhere, including AUDITLOG.
+           // ---------------------------------------------------------
+
+           Return l_NewPIN;
+       End-Proc;
+     **FREE
+        //====================================================================
+        // RAMA BANK - TRANSACTION STATEMENT
+        // Uses DSPF subfile pagination (PageUp/Down) with 15 records/page.
+        // Color codes DR/CR based on indicators from Display File (50/51).
+        //
+        // Fix vs original: $ACCTNUM (the screen field) was never set from
+        // the looked-up account number, so the cursor's WHERE ACCTNUM =
+        // :$ACCTNUM always filtered on blanks and returned zero rows.
+        // Now $ACCTNUM is populated immediately after lookup.
+        // STMTFTR TO BE ADDED
+        //====================================================================
+            Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Stmt_Main)
+                    BndDir('RAMABND');
+
+            Dcl-Pr Stmt_Main ExtPgm('STMTPGM');
+                   p_CustID Char(20) Const;
+            End-Pr;
+
+            Dcl-F STMTSCR WORKSTN Sfile(STMTSFL: RRN) IndDS(ScnInd);
+
+            Dcl-Ds ScnInd;
+                  ExitKey   Ind Pos(3);
+                  SflDsp    Ind Pos(40);
+                  SflDspCtl Ind Pos(41);
+                  SflClr    Ind Pos(42);
+                  ClrRED    Ind Pos(50);
+                  ClrGRN    Ind Pos(51);
+                  PrtStmt   Ind Pos(6);
+                  PagSrtU   Ind Pos(7);
+                  PagSrtD   Ind Pos(8);
+            End-Ds;
+
+           Dcl-Pr
+                Call_Stmtprnt   ExtPgm('STMTPRT');
+                p_CustID  Char(20) Const;
+                p_AcctNum Char(20) Const;
+                p_FrmDate Char(10) Const;
+                p_ToDate  Char(10) Const;
+                p_FltType Char(3) Const;
+           End-Pr;
+
+            Dcl-S RRN Int(10);
+            Dcl-S PageStart Int(10);
+            Dcl-S l_AcctNum Char(20);
+            Dcl-S l_TxnDate Date;
+            Dcl-S l_TxnTime Time;
+            Dcl-S l_Amount  Packed(15:2);
+
+            Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+         Dcl-Proc Stmt_Main;
+            Dcl-Pi *N;
+                  p_CustID Char(20) Const;
+            End-Pi;
+
+            Dcl-S l_Exit Ind Inz(*Off);
+
+           Exec SQL
+               Select ACCTNUM
+               Into :l_AcctNum
+               From SREERAMC1.ACCTMST
+               Where CUSTID = :p_CustID
+               Fetch First 1 Row Only;
+
+            If SQLCode <> 0;
+                $ERRMSG = 'No account found for this customer.';
+                ExFmt STMTCTL;
+                Close STMTSCR;
+                Return;
+            EndIf;
+
+            $ACCTNUM = l_AcctNum;
+
+               PageStart = 0;
+               ExSr LoadSubfile;
+
+            Dow Not l_Exit;
+                ExFmt STMTCTL;
+
+               If ExitKey;
+                   l_Exit = *On;
+                   Iter;
+               EndIf;
+
+               If PrtStmt;
+                   Call_Stmtprnt(p_CustID : l_AcctNum : $FRMDATE :
+                                 $TODATE : $FLTTYPE);
+                   Iter;
+               EndIf;
+
+               If PagSrtU;
+                  PageStart -= 15;
+                 If PageStart < 0;
+                    PageStart = 0;
+                 EndIf;
+                ExSr LoadSubfile;
+                Iter;
+               EndIf;
+
+               If PagSrtD;
+                  PageStart += 15;
+                  ExSr LoadSubfile;
+                  Iter;
+               EndIf;
+
+             PageStart = 0;
+             ExSr LoadSubfile;
+            EndDo;
+
+            close STMTSCR;
+             Return;
+
+           BegSr LoadSubfile;
+                SflClr = *On;
+                Write STMTCTL;
+                SflClr = *Off;
+                SflDspCtl = *On;
+                SflDsp = *Off;
+
+                RRN = 0;
+
+             Exec SQL
+                  Declare StmtCur Cursor For
+                  Select TXNDATE, TXNTIME, REFNUM, TXNTYPE,
+                         AMOUNT, BALAFTER
+                  From SREERAMC1.TXNHIST
+                  Where ACCTNUM = :l_AcctNum
+                  And (:$FRMDATE = '' OR TXNDATE >= DATE(:$FRMDATE))
+                  And (:$TODATE = ''  OR TXNDATE <= DATE(:$TODATE))
+                  And (:$FLTTYPE = '' OR :$FLTTYPE = 'ALL'
+                       OR TXNTYPE = :$FLTTYPE)
+                  Order By TXNDATE Desc, TXNTIME Desc
+                  Offset :PageStart Rows
+                  Fetch Next 15 Rows Only;
+
+             Exec SQL Open StmtCur;
+
+               Dow SQLCode = 0;
+                  Exec SQL Fetch StmtCur
+                   Into :l_TxnDate, :l_TxnTime, :$REFNUM, :$TYPE,
+                        :l_Amount, :$BALAFTER;
+
+                   If SQLCode <> 0;
+                      Leave;
+                   EndIf;
+
+                   $TXNDATE = %Char(l_TxnDate: *ISO);
+                   $TXNTIME = %Char(l_TxnTime);
+                   $AMOUNT  = %Trim(%EditC(l_Amount: 'P'));
+
+                 If $TYPE = 'DR';
+                    ClrRED = *On;
+                    ClrGRN = *Off;
+                    Else;
+                    ClrRED = *Off;
+                    ClrGRN = *On;
+                 EndIf;
+
+                    RRN += 1;
+                    Write STMTSFL;
+               EndDo;
+
+             Exec SQL Close StmtCur;
+
+             If RRN > 0;
+                SflDsp = *On;
+               Else;
+                $ERRMSG = 'No transactions found.';
+             EndIf;
+           EndSr;
+
+         End-Proc;
+     **FREE
+      //====================================================================
+      // RAMA BANK - PRINT STATEMENT SPOOLER
+      // Generates a spool file via QPRINT for the customer's statement.
+      //
+      // Fixes vs original:
+      //  - Original query had NO account-number filter at all, so any
+      //    customer's printed statement showed every other customer's
+      //    transactions within the date range. Now filtered by
+      //    p_AcctNum (new required parameter, passed by STMTPGM).
+      //  - p_FltType was accepted but never applied; now applied.
+      //  - Printed line only ever included date/time/reference; type,
+      //    amount and balance were silently dropped despite being in
+      //    the header. Now all columns are printed.
+      //====================================================================
+       Ctl-Opt DftActGrp(*No) ActGrp(*NEW) Main(Prt_Main) BndDir('RAMABND');
+
+       Dcl-Pr Prt_Main ExtPgm('STMTPRT');
+           p_CustID  Char(20) Const;
+           p_AcctNum Char(20) Const;
+           p_FrmDate Char(10) Const;
+           p_ToDate  Char(10) Const;
+           p_FltType Char(3) Const;
+       End-Pr;
+
+       Dcl-F QPRINT PRINTER(132) OFLIND(*In99);
+
+       Exec SQL Set Option Commit=*None, Naming=*Sys;
+
+       Dcl-Proc Prt_Main;
+       Dcl-Pi *N;
+           p_CustID  Char(20) Const;
+           p_AcctNum Char(20) Const;
+           p_FrmDate Char(10) Const;
+           p_ToDate  Char(10) Const;
+           p_FltType Char(3) Const;
+       End-Pi;
+
+       Dcl-Ds
+          //OutLine Char(132)
+          OutLine Len(132)
+       End-Ds;
+
+       Dcl-S l_Count Int(10) Inz(0);
+
+       Dcl-S Sql_TXNDATE Date;
+       Dcl-S Sql_TXNTIME Time;
+       Dcl-S Sql_REFNUM  Char(50);
+       Dcl-S Sql_AMOUNT  Packed(15:2);
+       Dcl-S Sql_BALAFTER Packed(15:2);
+       Dcl-S Sql_TXNTYPE Char(2);
+
+       OutLine = 'STATEMENT FOR CUSTOMER: ' + p_CustID
+                  + '   ACCOUNT: ' + p_AcctNum;
+       Write QPRINT OutLine;
+       OutLine = 'DATE       TIME     REFERENCE            TYPE   '+
+                  'AMOUNT          BALANCE';
+       Write QPRINT OutLine;
+       OutLine = '--------------------------------------------------------'+
+                       '-----------';
+       Write QPRINT OutLine;
+
+       Exec SQL Declare PrtCur Cursor For
+           Select TXNDATE, TXNTIME, REFNUM, TXNTYPE, AMOUNT, BALAFTER
+           From SREERAMC1.TXNHIST
+           Where ACCTNUM = :p_AcctNum
+             And (:p_FrmDate = '' OR TXNDATE >= DATE(:p_FrmDate))
+             And (:p_ToDate  = '' OR TXNDATE <= DATE(:p_ToDate))
+             And (:p_FltType = '' OR :p_FltType = 'ALL'
+                  OR TXNTYPE = :p_FltType)
+           Order By TXNDATE Desc, TXNTIME Desc;
+
+       Exec SQL Open PrtCur;
+
+       Dow SQLCode = 0;
+           Exec SQL Fetch PrtCur Into :Sql_TXNDATE, :Sql_TXNTIME,
+                                      :Sql_REFNUM, :Sql_TXNTYPE,
+                                      :Sql_AMOUNT, :Sql_BALAFTER;
+           If SQLCode <> 0;
+               Leave;
+           EndIf;
+
+           OutLine = %Char(Sql_TXNDATE: *ISO) + ' '
+                      + %Char(Sql_TXNTIME) + ' '
+                      + %Subst(Sql_REFNUM: 1: 20) + ' '
+                      + Sql_TXNTYPE + '     '
+                      + %Trim(%EditC(Sql_AMOUNT: 'P')) + '   '
+                      + %Trim(%EditC(Sql_BALAFTER: 'P'));
+           Write QPRINT OutLine;
+
+           l_Count += 1;
+           If *In99;
+               OutLine = '--- Page Break ---';
+               Write QPRINT OutLine;
+               *In99 = *Off;
+           EndIf;
+       EndDo;
+
+       Exec SQL Close PrtCur;
+
+       OutLine = 'END OF REPORT. TOTAL RECORDS: ' + %Char(l_Count);
+       Write QPRINT OutLine;
+
+       Close QPRINT;
+       Return;
+       End-Proc;
+

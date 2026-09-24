@@ -1,0 +1,15 @@
+     A***************************************************************
+     A* MD_VENDOR  - DDS Physical File for MD_VENDOR
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MD_VENDORR
+     A            VENDOR_CD     15A
+     A            VENDORNAME    80A
+     A                                      VARLEN
+     A                                      ALIAS(VENDOR_NAME)
+     A            COUNTRY       40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K VENDOR_CD

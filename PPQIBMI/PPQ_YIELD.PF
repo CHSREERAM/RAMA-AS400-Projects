@@ -1,0 +1,29 @@
+     A***************************************************************
+     A* PPQ_YIELD  - DDS Physical File for PPQ_YIELD
+     A* Module 19 - Yield and Reconciliation
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQ_YIELDR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            STAGE_SEQ      4B 0
+     A            STAGE_NAME    60A
+     A                                      VARLEN
+     A            THRTCLYLD     15P 3
+     A                                      ALWNULL
+     A                                      ALIAS(THEORETICAL_YIELD)
+     A            ACTLYLD       15P 3
+     A                                      ALWNULL
+     A                                      ALIAS(ACTUAL_YIELD)
+     A            UOM            6A
+     A                                      ALWNULL
+     A            PCT_YIELD      7P 3
+     A                                      ALWNULL
+     A            RCNCLDND       1A
+     A                                      ALIAS(RECONCILED_IND)
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K STAGE_SEQ
+     A***************************************************************
+     A* CONVERSION NOTES:
+     A*  - PCT_YIELD: SQL GENERATED ALWAYS AS (CASE WHEN THEORETICAL_YIELD IS NU

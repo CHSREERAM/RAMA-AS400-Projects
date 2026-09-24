@@ -1,0 +1,16 @@
+     A***************************************************************
+     A* PPQTLTS    - DDS Physical File for PPQ_UTILITIES
+     A* Module 9 - Utilities Qualification
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQTLTSR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            UTILITY_CD    10A
+     A            QUALSTATUS     1A
+     A                                      ALIAS(QUAL_STATUS)
+     A            QUAL_DATE       L
+     A                                      ALWNULL
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K UTILITY_CD

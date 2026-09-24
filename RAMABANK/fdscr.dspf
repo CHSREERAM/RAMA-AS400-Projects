@@ -1,0 +1,29 @@
+     A*%%***********************************************************************
+     A*%% RAMA BANK - FIXED DEPOSITS
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA10(10 'CLOSE FD')
+     A                                      INDARA
+     A          R FDFMT
+     A                                  1 25'FIXED DEPOSIT DETAILS'
+     A                                      DSPATR(HI)
+     A                                  3  5'FD Account Number:'
+     A            FDACCT        20A  B  3 24
+     A                                  5  5'Principal Amount.:'
+     A            PRINAMT       15Y 2O  5 24EDTCDE(4)
+     A                                  6  5'Interest Rate (%):'
+     A            INTRATE        5Y 2O  6 24EDTCDE(4)
+     A                                  7  5'Duration (Months):'
+     A            MONTHS         4Y 0O  7 24
+     A                                  8  5'Maturity Date....:'
+     A            MATDATE       10A  O  8 24
+     A  70                                  DSPATR(HI) DSPATR(BL) COLOR(RED)
+     A                                  9  5'Maturity Amount..:'
+     A            MATAMT        15Y 2O  9 24EDTCDE(4)
+     A                                 11  5'Status...........:'
+     A            STATUS        10A  O 11 24
+     A            ERRMSG        50A  O 15  5COLOR(RED)
+     A                                 23  2'F3=Exit   F10=Premature Closure'
+     A                                      COLOR(BLU)
+

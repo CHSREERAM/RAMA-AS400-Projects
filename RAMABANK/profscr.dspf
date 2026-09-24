@@ -1,0 +1,49 @@
+     A*%%***********************************************************************
+     A*%% RAMA BANK - PROFILE AND CHANGE PASSWORD
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A*=======================================================================
+     A          R PROFFMT
+     A                                  1 25'MY PROFILE & KYC'
+     A                                      DSPATR(HI)
+     A                                  4  5'Customer ID:'
+     A            CUSTID        20A  O  4 18
+     A                                  5  5'Name.......:'
+     A            NAME          40A  O  5 18
+     A                                  7  5'PAN........:'
+     A            PAN           10A  O  7 18
+     A                                  8  5'Aadhaar....:'
+     A            AADHAAR       12A  O  8 18
+     A                                 10  5'Mobile.....:'
+     A            MOBILE        15A  O 10 18
+     A                                 11  5'Email......:'
+     A            EMAIL         50A  O 11 18
+     A                                 13  5'Address....:'
+     A            ADDRESS      100A  O 13 18
+     A                                 16  5'Update Request Field:'
+     A            UPDFLD        10A  B 16 27
+     A                                 17  5'New Value...........:'
+     A            UPDVAL        50A  B 17 27
+     A            ERRMSG        40A  O 19  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Request Value+
+     A                                       Update'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R CHGPWD
+     A                                  1 25'CHANGE PASSWORD'
+     A                                      DSPATR(HI)
+     A                                  4  5'For security, password must have+
+     A                                       uppercase, lowercase, digit, spec+
+     A                                       char.'
+     A                                  6  5'Current Password.:'
+     A            CURPWD        20A  B  6 24DSPATR(ND)
+     A                                  8  5'New Password.....:'
+     A            NEWPWD        20A  B  8 24DSPATR(ND)
+     A                                 10  5'Confirm Password.:'
+     A            CNFPWD        20A  B 10 24DSPATR(ND)
+     A            PWDERR        40A  O 12  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Change Password'
+     A                                      COLOR(BLU)
+

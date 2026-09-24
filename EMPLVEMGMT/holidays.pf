@@ -1,0 +1,5 @@
+A               R HOLIREC                   TEXT('HOLIDAY RECORD')
+A                 HLDATE         8S 0       COLHDG('DATE')
+A                 HLDAY         10A         COLHDG('DAY')
+A                 HLRMRK        20A         COLHDG('REMARKS')
+A               K HLDATE

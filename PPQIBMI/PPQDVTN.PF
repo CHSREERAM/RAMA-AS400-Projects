@@ -1,0 +1,31 @@
+     A***************************************************************
+     A* PPQDVTN    - DDS Physical File for PPQ_DEVIATION
+     A* Module 20 - Deviation Handling
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQDVTNR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            DEV_NO        20A
+     A                                      VARLEN
+     A            DSCRPTN      400A
+     A                                      VARLEN
+     A                                      ALIAS(DESCRIPTION)
+     A            ROOT_CAUSE   400A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            CAPA_REF      40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            APPRSTATUS    15A
+     A                                      ALIAS(APPR_STATUS)
+     A                                      VALUES('OPEN' 'UNDER_REVIEW' +
+     A                                      'CLOSED')
+     A            RAISED_BY     10A
+     A                                      VARLEN
+     A            RAISED_TS       Z
+     A            CLOSURE_DT      L
+     A                                      ALWNULL
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K DEV_NO

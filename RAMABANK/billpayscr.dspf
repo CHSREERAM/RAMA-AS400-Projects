@@ -1,0 +1,37 @@
+     A*%%***********************************************************************
+     A*%% RAMA BANK - BILL PAYMENT SCREEN
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A          R BILLSFL                   SFL
+     A            S_SEL          1A  B  7  2
+     A            S_BILLER      20A  O  7  5
+     A            S_CAT         15A  O  7 27
+     A            S_CONNUM      20A  O  7 44
+     A            S_AUTOPAY      1A  O  7 66
+     A*
+     A          R BILLCTL                   SFLCTL(BILLSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'BILL PAYMENTS'
+     A                                      DSPATR(HI)
+     A                                  3  5'From Account..:'
+     A            ACCTNUM       20A  O  3 22
+     A            BALANCE       15Y 2O  3 45EDTCDE(4)
+     A                                  5  2'Opt'
+     A                                  5  6'Biller Name'
+     A                                  5 27'Category'
+     A                                  5 44'Consumer No.'
+     A                                  5 66'AutoPay'
+     A*
+     A          R BILLPAY
+     A                                 18  5'Amount to Pay.:'
+     A            PAYAMT        10Y 2B 18 22
+     A            ERRMSG        40A  O 20  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Pay Selected Bill'
+     A                                      COLOR(BLU)

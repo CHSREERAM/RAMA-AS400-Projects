@@ -1,0 +1,31 @@
+     A* ==========================================================
+     A* RAMA BANK - Account Master File
+     A* P = Packed ( for math operations and database fields)
+     A* Instead of using a full byte for each digit, it splits
+     A* -every byte in half and packs two digits into one byte.
+     A* 1234 is packed into bytes as 01 23 4C (C means positive)
+     A*  01 23 4D foe -1234 (D means negative)
+     A* S= Zoned stores numbers exactly like readable text,
+     A* using one full byte for each digit.F1 F2 F3 F4 (where F is
+     A* the standard zone filler) F1 F2 F3 D4 (D is the sign) for -1234
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R ACCTMREC
+     A            ACCTNUM       20A         COLHDG('Account Number')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            BRANCH        30A         COLHDG('Branch Name')
+     A            IFSC          11A         COLHDG('IFSC Code')
+     A            MICR           9A         COLHDG('MICR Code')
+     A            BALANCE       15P 2       COLHDG('Current Balance')
+     A                                      DFT(0.00)
+     A            ACCTTYPE       3A         COLHDG('Account Type' +
+     A                                             '(SB/CA/etc)')
+     A                                      DFT('SB')
+     A            STATUS         1A         COLHDG('Account Status' +
+     A                                             '(A/C/B)')
+     A                                      DFT('A')
+     A          K ACCTNUM
+
+
+
+

@@ -1,0 +1,23 @@
+     A* ==========================================================
+     A* RAMA BANK - Fixed Deposit Master File (FD-level terms)
+     A* Added because ACCTMST has no columns for interest rate,
+     A* term, or maturity date, which FDDTLPGM requires and
+     A* previously hardcoded for every customer.
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R FDMREC
+     A            FDACCT        20A         COLHDG('FD Account Number')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            LINKEDSB      20A         COLHDG('Linked Savings' +
+     A                                              'Account')
+     A            PRINAMT       15P 2       COLHDG('Principal Amount')
+     A            INTRATE        5P 2       COLHDG('Annual Interest' +
+     A                                              'Rate %')
+     A            TERMMNTH       4P 0       COLHDG('Term in Months')
+     A            STARTDATE       L         COLHDG('FD Start Date')
+     A            MATDATE         L         COLHDG('Maturity Date')
+     A            MATAMT        15P 2       COLHDG('Projected Maturity' +
+     A                                              'Amount')
+     A            FDSTS          1A         COLHDG('Status (A/C)')
+     A                                      DFT('A')
+     A          K FDACCT

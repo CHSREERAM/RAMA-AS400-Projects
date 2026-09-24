@@ -1,0 +1,9 @@
+     A* ==========================================================
+     A* RAMA BANK - Transaction History Logical (keyed by Account)
+     A* Used by statement/ministatement programs for efficient
+     A* retrieval in date/time descending order.
+     A* ==========================================================
+     A          R TXNHREC                   PFILE(TXNHIST)
+     A          K ACCTNUM
+     A          K TXNDATE
+     A          K TXNTIME

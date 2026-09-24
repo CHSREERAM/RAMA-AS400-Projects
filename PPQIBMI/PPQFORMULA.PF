@@ -1,0 +1,28 @@
+     A***************************************************************
+     A* PPQFORMULA - DDS Physical File for PPQ_FORMULA
+     A* Module 7 - Manufacturing Formula
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQFORMULR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            INGRDNTSQ      4B 0
+     A                                      ALIAS(INGREDIENT_SEQ)
+     A            MATERIALCD    15A
+     A                                      ALIAS(MATERIAL_CD)
+     A            STD_QTY       15P 4
+     A            ACTUAL_QTY    15P 4
+     A                                      ALWNULL
+     A            TLRNCPCT       5P 2
+     A                                      ALWNULL
+     A                                      ALIAS(TOLERANCE_PCT)
+     A            UOM            6A
+     A            VRNCPCT        7P 3
+     A                                      ALWNULL
+     A                                      ALIAS(VARIANCE_PCT)
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K INGRDNTSQ
+     A***************************************************************
+     A* CONVERSION NOTES:
+     A*  - VARIANCE_PCT: SQL GENERATED ALWAYS AS (CASE WHEN STD_QTY = 0 OR ACTUA

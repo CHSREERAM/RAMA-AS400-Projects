@@ -1,0 +1,29 @@
+     A*%%***********************************************************************
+     A*%% RAMA BANK - LOGIN SCREEN
+     A*%% Fix: removed stray record-level BLINK keyword that made the
+     A*%% entire screen blink (was almost certainly meant for ERRMSG only,
+     A*%% which already has its own DSPATR(BL) below).
+     A* *DS3 = 24 lines, 80 columns, Standard screen size
+     A* *DS4 = 27 lines, 132 columns, Extended (Larger) screen size
+     A* *DS4 used for wide reports or spreadsheets
+     A* INDARA stands for Indicator Area.must declare it in both the
+     A* -DDS and the RPG code:
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA09(09 'Reset Password')
+     A                                      INDARA
+     A          R LOGINFMT
+     A                                      OVERLAY
+     A                                  1 25'RAMA BANK - CORE BANKING SYSTEM'
+     A                                      DSPATR(HI)
+     A                                  3 35'LOGIN'
+     A                                      DSPATR(UL)
+     A                                  6 20'USER ID ......:'
+     A            USERID        20A  B  6 37
+     A                                  8 20'PASSWORD .....:'
+     A            PWDHID        20A  B  8 37DSPATR(ND)
+     A                                 12 20'Status:'
+     A            ERRMSG        50A  O 12 28DSPATR(HI) DSPATR(BL) COLOR(RED)
+     A                                 23  2'F3=Exit F9=Reset Password'
+     A                                      COLOR(BLU)

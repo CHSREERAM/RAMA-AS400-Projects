@@ -1,0 +1,10 @@
+     A* ==========================================================
+     A* RAMA BANK - Account Master Logical (keyed by Customer ID)
+     A* Lets programs CHAIN/SETLL accounts by customer instead of
+     A* only by ACCTNUM. SQL queries can also use this access path.
+     A* ==========================================================
+     A          R ACCTMREC                  PFILE(ACCTMST)
+     A            ACCTNUM
+     A            CUSTID
+     A          K CUSTID
+     A          K ACCTNUM

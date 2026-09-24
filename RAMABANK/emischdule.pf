@@ -1,0 +1,14 @@
+     A* ==========================================================
+     A* RAMA BANK - EMI Schedule File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R EMISREC
+     A            EMIID          9B 0       COLHDG('EMI ID')
+     A            LOANACCT      20A         COLHDG('Loan Account Number')
+     A            DUEDATE         L         COLHDG('Due Date')
+     A            EMI_AMT       15P 2       COLHDG('EMI Amount')
+     A            PRIN_AMT      15P 2       COLHDG('Principal Amount')
+     A            INT_AMT       15P 2       COLHDG('Interest Amount')
+     A            STATUS        10A         COLHDG('Status')
+     A                                      DFT('PENDING')
+     A          K EMIID

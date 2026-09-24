@@ -1,0 +1,35 @@
+     A*%%***********************************************************************
+     A*%% RAMA BANK - CARD MANAGEMENT SCREEN
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA09(09 'UPDATE')
+     A                                      INDARA
+     A          R CARDFMT
+     A                                  1 25'CARD MANAGEMENT'
+     A                                      DSPATR(HI)
+     A                                  3  5'Card Number...:'
+     A            CARDNUM       16A  B  3 22
+     A                                  4  5'Account Number:'
+     A            ACCTNUM       20A  O  4 22
+     A                                  5  5'Status........:'
+     A            STATUS         1A  O  5 22DSPATR(HI)
+     A                                  8  5'--- Card Controls (Y/N) ---'
+     A                                      COLOR(BLU)
+     A                                 10  5'International.:'
+     A            INTLFLG        1A  B 10 22
+     A                                 11  5'Online........:'
+     A            ONLNFLG        1A  B 11 22
+     A                                 12  5'Contactless...:'
+     A            CNTLFLG        1A  B 12 22
+     A                                 14  5'Daily Limit...:'
+     A            DLYLMT        15Y 2B 14 22EDTCDE(4)
+     A            ERRMSG        40A  O 17  5COLOR(RED)
+     A                                 19  5'B=Block  U=Unblock  H=Hotlist+
+     A                                       P=Reset PIN'
+     A                                      COLOR(BLU)
+     A                                 20  5'Action:'
+     A            ACTION         1A  B 20 13
+     A                                 23  2'F3=Exit   F9=Update Preferences+
+     A                                       Enter=Submit Action'
+     A                                      COLOR(BLU)

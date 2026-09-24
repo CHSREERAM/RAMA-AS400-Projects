@@ -1,0 +1,123 @@
+     A*%%TS  SD  20260627  091110  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - ADMIN PANEL (expanded)
+     A*%% Original had only a menu shell; options 1-3 were unimplemented.
+     A*%% Added: ADMNMENU (menu), CUSTSFL/CUSTCTL (customer search),
+     A*%% KYCSFL/KYCCTL (KYC approval), MCRSFL/MCRCTL (maker-checker
+     A*%% approval queue for UPDATEREQ records).
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A          R ADMNMENU
+     A                                  1 25'RAMA BANK - ADMIN PANEL'
+     A                                      DSPATR(HI)
+     A                                  4  5'Welcome Admin User.'
+     A                                  6  5'1. Customer Search & View'
+     A                                  7  5'2. KYC Verification & Approval'
+     A                                  8  5'3. Maker-Checker Update'+
+     A                                       ' Approvals'
+     A                                  9  5'4. Scheduled Report'+
+     A                                       ' Generation (SBMJOB)'
+     A                                 11  5'Selection:'
+     A            MENUOPT        1A  B 11 16
+     A            ERRMSG        40A  O 13  5COLOR(RED)
+     A                                 23  2'F3=Dashboard   Enter=Proceed'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R CUSTSFL                   SFL
+     A            C_CUSTID      20A  O  8  2
+     A            C_NAME        30A  O  8 24
+     A            C_MOBILE      15A  O  8 56
+     A            C_KYC          1A  O  8 73
+     A*
+     A          R CUSTCTL                   SFLCTL(CUSTSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'ADMIN - CUSTOMER SEARCH'
+     A                                      DSPATR(HI)
+     A                                  3  5'Search (CustID/Name, blank=all):'
+     A            SRCHVAL       30A  B  3 39
+     A                                  6  2'Customer ID'
+     A                                  6 24'Name'
+     A                                  6 56'Mobile'
+     A                                  6 73'KYC'
+     A*
+     A          R CUSTFTR
+     A                                      OVERLAY
+     A            ERRMSG        40A  O 21  2COLOR(RED)
+     A                                 23  2'F3=Back to Menu   Enter=Search'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R KYCSFL                    SFL
+     A            K_SEL          1A  B  8  2
+     A            K_CUSTID      20A  O  8  5
+     A            K_NAME        30A  O  8 27
+     A            K_PAN         10A  O  8 58
+     A            K_KYC          1A  O  8 70
+     A*
+     A          R KYCCTL                    SFLCTL(KYCSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'ADMIN - KYC VERIFICATION'
+     A                                      DSPATR(HI)
+     A                                  3  5'Showing customers with KYC'+
+     A                                       ' Status = Pending'
+     A                                  6  2'Opt'
+     A                                  6  6'Customer ID'
+     A                                  6 27'Name'
+     A                                  6 58'PAN'
+     A                                  6 70'KYC'
+     A*
+     A          R KYCFTR
+     A                                      OVERLAY
+     A                                 19  5'Opt: A=Approve  R=Reject'
+     A                                      COLOR(BLU)
+     A            ERRMSG        40A  O 21  2COLOR(RED)
+     A                                 23  2'F3=Back to Menu   Enter=Apply'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R MCRSFL                    SFL
+     A            M_SEL          1A  B  8  2
+     A            M_CUSTID      20A  O  8  5
+     A            M_FIELD       10A  O  8 27
+     A            M_OLDVAL      20A  O  8 39
+     A            M_NEWVAL      20A  O  8 61
+     A*
+     A          R MCRCTL                    SFLCTL(MCRSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'ADMIN - MAKER-CHECKER'+
+     A                                       ' APPROVALS'
+     A                                      DSPATR(HI)
+     A                                  3  5'Pending profile/address'+
+     A                                       ' update requests'
+     A                                  6  2'Opt'
+     A                                  6  6'Customer ID'
+     A                                  6 27'Field'
+     A                                  6 39'Old Value'
+     A                                  6 61'New Value'
+     A*
+     A          R MCRFTR
+     A                                      OVERLAY
+     A                                 19  5'Opt: A=Approve  R=Reject'
+     A                                      COLOR(BLU)
+     A            ERRMSG        40A  O 21  2COLOR(RED)
+     A                                 23  2'F3=Back to Menu   Enter=Apply'
+     A                                      COLOR(BLU)

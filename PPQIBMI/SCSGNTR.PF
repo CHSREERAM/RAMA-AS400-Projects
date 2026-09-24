@@ -1,0 +1,23 @@
+     A***************************************************************
+     A* SCSGNTR    - DDS Physical File for SEC_ESIGNATURE
+     A* Security - Captured Electronic Signature (21 CFR Part 11 style)
+     A***************************************************************
+     A                                      UNIQUE
+     A          R SCSGNTRR
+     A            ESIG_ID       18P 0
+     A            USER_ID       10A
+     A                                      VARLEN
+     A            MEANINGTXT   100A
+     A                                      VARLEN
+     A                                      ALIAS(MEANING_TXT)
+     A            SIGNED_TS       Z
+     A            REAUTH_IND     1A
+     A                                      VALUES('Y' 'N')
+     A            SOURCE_IP     45A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A***************************************************************
+     A          K ESIG_ID
+     A***************************************************************
+     A* CONVERSION NOTES:
+     A*  - ESIG_ID: SQL IDENTITY not supported in DDS - populate from the matchi

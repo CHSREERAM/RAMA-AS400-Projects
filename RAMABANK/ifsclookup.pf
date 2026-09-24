@@ -1,0 +1,10 @@
+     A* ==========================================================
+     A* RAMA BANK - IFSC Lookup File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R IFSCREC
+     A            IFSC          11A         COLHDG('IFSC Code')
+     A            BANKNAME     100A         COLHDG('Bank Name')
+     A            BRANCHNAME   100A         COLHDG('Branch Name')
+     A            CITY         100A         COLHDG('City')
+     A          K IFSC

@@ -1,0 +1,309 @@
+     A*%%TS  SD  20260101  000000  EMPMOD      REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*================================================================
+     A*  MGRAPPLY  -  Manager Personal Application Display File
+     A*  Covers:
+     A*    5.2.8   Apply Comp-Off
+     A*    5.2.9   Apply Leaves  (type selection + balance)
+     A*    5.2.10  Apply Leave   (date entry form)
+     A*    5.2.11  Leave Status  (subfile, cancel pending)
+     A*    5.2.12  Comp-Off Status (subfile, cancel pending)
+     A*================================================================
+     A                                      DSPSIZ(24 80 *DS3)
+     A*----------------------------------------------------------------
+     A*  5.2.8  MGRAPPLYCO  -  Apply Comp-Off
+     A*----------------------------------------------------------------
+     A          R MGRAPPLYCO
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      CF05(05 'Refresh')
+     A                                      CF04(04 'Prompt')
+     A                                      RTNCSRLOC(&P_REC &P_FLD)
+     A            P_REC         10A  H
+     A            P_FLD         10A  H
+     A                                  1  3'USER: MANAGER'
+     A                                      COLOR(WHT)
+     A                                  1 25'Employee Leave Management System'
+     A                                      DSPATR(RI)
+     A                                      COLOR(YLW)
+     A                                  2 33'Apply Comp Off'
+     A                                      COLOR(YLW)
+     A                                  1 65'DATE:'
+     A                                      COLOR(WHT)
+     A                                  1 71DATE
+     A                                      EDTCDE(Y)
+     A                                  2  3'TEAM:'
+     A                                      COLOR(WHT)
+     A            $MTEAM        10A  O  2  9COLOR(WHT)
+     A                                  2 65'TIME:'
+     A                                      COLOR(WHT)
+     A                                  2 71TIME
+     A                                  5  3'Worked Date      :'
+     A                                      COLOR(WHT)
+     A                                  5 45'(YYYYMMDD)'
+     A                                      COLOR(BLU)
+     A                                  7  3'Day Type         :'
+     A                                      COLOR(WHT)
+     A                                  7 30'(F4=Prompt: FH / SH / FD)'
+     A                                      COLOR(BLU)
+     A                                  9  3'Reason           :'
+     A                                      COLOR(WHT)
+     A                                 11  3'Project Id       :'
+     A                                      COLOR(WHT)
+     A            $MCOWRDT       8S 0B  5 22
+     A            $MCODYTY       2A  B  7 22DSPATR(PR)
+     A  61                                  DSPATR(PC)
+     A  99                                  DSPATR(PR)
+     A            $MCORSN      100A  B  9 22CHECK(LC)
+     A            $MCOPRJD       6A  B 11 22
+     A            MSG           60A  O 24  3COLOR(RED)
+     A                                 23  3'F3=Exit'
+     A                                      COLOR(BLU)
+     A                                 23 13'F5=Refresh'
+     A                                      COLOR(BLU)
+     A                                 23 28'F12=Cancel'
+     A                                      COLOR(BLU)
+     A                                 23 43'F4=Prompt DayType'
+     A                                      COLOR(BLU)
+     A*----------------------------------------------------------------
+     A*  5.2.9  MGRAPPLYSEL  -  Leave Type Selection
+     A*----------------------------------------------------------------
+     A          R MGRAPPLYSEL
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      CF05(05 'Refresh')
+     A                                  1  3'USER: MANAGER'
+     A                                      COLOR(WHT)
+     A                                  1 25'Employee Leave Management System'
+     A                                      DSPATR(RI)
+     A                                      COLOR(YLW)
+     A                                  2 34'Apply Leaves'
+     A                                      COLOR(YLW)
+     A                                  1 65'DATE:'
+     A                                      COLOR(WHT)
+     A                                  1 71DATE
+     A                                      EDTCDE(Y)
+     A                                  2  3'TEAM:'
+     A                                      COLOR(WHT)
+     A            $MLTEAM       10A  O  2  9COLOR(WHT)
+     A                                  2 65'TIME:'
+     A                                      COLOR(WHT)
+     A                                  2 71TIME
+     A                                  5  3'Select one of the following.'
+     A                                      COLOR(BLU)
+     A                                  7  5'1= Apply Casual Leave'
+     A                                  8  5'2= Apply Earned Leave'
+     A                                  9  5'3= Apply Comp Off Leave'
+     A                                 12  3'Casual Leaves  :'
+     A                                      COLOR(WHT)
+     A            $MBALCL        2S 0O 12 22COLOR(GRN)
+     A                                 13  3'Earned Leaves  :'
+     A                                      COLOR(WHT)
+     A            $MBALEL        2S 0O 13 22COLOR(GRN)
+     A                                 14  3'Comp Off Leaves:'
+     A                                      COLOR(WHT)
+     A            $MBALCO        2S 0O 14 22COLOR(GRN)
+     A                                 17  2'Selection'
+     A                                 18  2'===>'
+     A            $MSELVTYP      1Y 0B 18  8CHECK(RZ)
+     A            MSG           60A  O 24  3COLOR(RED)
+     A                                 23  3'F3=Exit'
+     A                                      COLOR(BLU)
+     A                                 23 13'F5=Refresh'
+     A                                      COLOR(BLU)
+     A                                 23 28'F12=Cancel'
+     A                                      COLOR(BLU)
+     A*----------------------------------------------------------------
+     A*  5.2.10  MGRAPPLYFRM  -  Leave Date Entry Form
+     A*----------------------------------------------------------------
+     A          R MGRAPPLYFRM
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      CF05(05 'Refresh')
+     A                                      CF04(04 'Prompt')
+     A                                      RTNCSRLOC(&P_REC &P_FLD)
+     A            P_REC         10A  H
+     A            P_FLD         10A  H
+     A                                  1  3'USER: MANAGER'
+     A                                      COLOR(WHT)
+     A                                  1 25'Employee Leave Management System'
+     A                                      DSPATR(RI)
+     A                                      COLOR(YLW)
+     A                                  2 34'Apply Leaves'
+     A                                      COLOR(YLW)
+     A                                  1 65'DATE:'
+     A                                      COLOR(WHT)
+     A                                  1 71DATE
+     A                                      EDTCDE(Y)
+     A                                  2  3'TEAM:'
+     A                                      COLOR(WHT)
+     A            $MFTEAM       10A  O  2  9COLOR(WHT)
+     A                                  2 65'TIME:'
+     A                                      COLOR(WHT)
+     A                                  2 71TIME
+     A                                  5  3'Leave Type    :'
+     A                                      COLOR(WHT)
+     A            $MFLVTYP       2A  O  5 20COLOR(YLW)
+     A                                  5 30'Balance:'
+     A                                      COLOR(WHT)
+     A            $MFBAL         2S 0O  5 39COLOR(GRN)
+     A                                  7  3'From Date     :'
+     A                                      COLOR(WHT)
+     A                                  7 35'(YYYYMMDD)'
+     A                                      COLOR(BLU)
+     A                                  8  3'From Day Type :'
+     A                                      COLOR(WHT)
+     A                                  8 35'(F4=Prompt: FH / SH / FD)'
+     A                                      COLOR(BLU)
+     A                                 10  3'To Date       :'
+     A                                      COLOR(WHT)
+     A                                 10 35'(YYYYMMDD)'
+     A                                      COLOR(BLU)
+     A                                 11  3'To Day Type   :'
+     A                                      COLOR(WHT)
+     A                                 11 35'(F4=Prompt)'
+     A                                      COLOR(BLU)
+     A                                 13  3'Reason        :'
+     A                                      COLOR(WHT)
+     A                                 15  3'Total Days    :'
+     A                                      COLOR(WHT)
+     A            $MLVEFRDT      8S 0B  7 20
+     A            $MLVEFRDY      2A  B  8 20DSPATR(PR)
+     A  71                                  DSPATR(PC)
+     A  99                                  DSPATR(PR)
+     A            $MLVETODT      8S 0B 10 20
+     A            $MLVETODY      2A  B 11 20DSPATR(PR)
+     A  72                                  DSPATR(PC)
+     A  99                                  DSPATR(PR)
+     A            $MLVERSNY    100A  B 13 20CHECK(LC)
+     A            $MLVETDAY      2S 0O 15 20COLOR(YLW)
+     A            MSG           60A  O 24  3COLOR(RED)
+     A                                 23  3'F3=Exit'
+     A                                      COLOR(BLU)
+     A                                 23 13'F5=Refresh'
+     A                                      COLOR(BLU)
+     A                                 23 28'F12=Cancel'
+     A                                      COLOR(BLU)
+     A                                 23 43'F4=Prompt DayType'
+     A                                      COLOR(BLU)
+     A*----------------------------------------------------------------
+     A*  5.2.11  MGRLVSTS_SFL / MGRLVSTS_CTL  -  Leave Status Subfile
+     A*----------------------------------------------------------------
+     A          R MGRLVSTS_SFL              SFL
+     A            MSL_OPT        1S 0B  9  2
+     A            MSL_FRDT       8S 0O  9  7
+     A            MSL_TODT       8S 0O  9 19
+     A            MSL_TDAY       2S 0O  9 31
+     A            MSL_STS        1A  O  9 37
+     A            MSL_TYPE       2A  O  9 43
+     A          R MGRLVSTS_CTL              SFLCTL(MGRLVSTS_SFL)
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      CF05(05 'Refresh')
+     A                                      OVERLAY
+     A  75                                  SFLDSP
+     A  76                                  SFLDSPCTL
+     A  77                                  SFLCLR
+     A  78                                  SFLEND(*MORE)
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0011)
+     A                                  1  3'USER: MANAGER'
+     A                                      COLOR(WHT)
+     A                                  1 25'Employee Leave Management System'
+     A                                      DSPATR(RI)
+     A                                      COLOR(YLW)
+     A                                  2 35'Leave Status'
+     A                                      COLOR(YLW)
+     A                                  1 65'DATE:'
+     A                                      COLOR(WHT)
+     A                                  1 71DATE
+     A                                      EDTCDE(Y)
+     A                                  2  3'TEAM:'
+     A                                      COLOR(WHT)
+     A            $MLSTEAM      10A  O  2  9COLOR(WHT)
+     A                                  2 65'TIME:'
+     A                                      COLOR(WHT)
+     A                                  2 71TIME
+     A                                  5  2'Press 1 to cancel the applied lea+
+     A                                     ve'
+     A                                      COLOR(BLU)
+     A                                  7  3'Opt'
+     A                                      COLOR(WHT)
+     A                                  7  8'From Date'
+     A                                      COLOR(WHT)
+     A                                  7 20'To Date'
+     A                                      COLOR(WHT)
+     A                                  7 30'Days'
+     A                                      COLOR(WHT)
+     A                                  7 36'Status'
+     A                                      COLOR(WHT)
+     A                                  7 43'Type'
+     A                                      COLOR(WHT)
+     A          R MGRLVFOOTER
+     A                                      OVERLAY
+     A                                 23  3'F3=Exit'
+     A                                      COLOR(BLU)
+     A                                 23 13'F5=Refresh'
+     A                                      COLOR(BLU)
+     A                                 23 28'F12=Cancel'
+     A                                      COLOR(BLU)
+     A            MSG           60A  O 24  3COLOR(RED)
+     A*----------------------------------------------------------------
+     A*  5.2.12  MGRCOSTS_SFL / MGRCOSTS_CTL  -  Comp-Off Status Subfile
+     A*----------------------------------------------------------------
+     A          R MGRCOSTS_SFL              SFL
+     A            MSC_OPT        1S 0B  9  2
+     A            MSC_WRDT       8S 0O  9  7
+     A            MSC_RSN       20A  O  9 19
+     A            MSC_DYTY       2A  O  9 42
+     A            MSC_STS        1A  O  9 49
+     A          R MGRCOSTS_CTL              SFLCTL(MGRCOSTS_SFL)
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      CF05(05 'Refresh')
+     A                                      OVERLAY
+     A  80                                  SFLDSP
+     A  81                                  SFLDSPCTL
+     A  82                                  SFLCLR
+     A  83                                  SFLEND(*MORE)
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0011)
+     A                                  1  3'USER: MANAGER'
+     A                                      COLOR(WHT)
+     A                                  1 25'Employee Leave Management System'
+     A                                      DSPATR(RI)
+     A                                      COLOR(YLW)
+     A                                  2 33'Comp Off Status'
+     A                                      COLOR(YLW)
+     A                                  1 65'DATE:'
+     A                                      COLOR(WHT)
+     A                                  1 71DATE
+     A                                      EDTCDE(Y)
+     A                                  2  3'TEAM:'
+     A                                      COLOR(WHT)
+     A            $MCSTEAM      10A  O  2  9COLOR(WHT)
+     A                                  2 65'TIME:'
+     A                                      COLOR(WHT)
+     A                                  2 71TIME
+     A                                  5  2'Press 1 to cancel the applied com+
+     A                                     p-off'
+     A                                      COLOR(BLU)
+     A                                  7  3'Opt'
+     A                                      COLOR(WHT)
+     A                                  7  8'Date'
+     A                                      COLOR(WHT)
+     A                                  7 19'Reason'
+     A                                      COLOR(WHT)
+     A                                  7 41'DayType'
+     A                                      COLOR(WHT)
+     A                                  7 49'Status'
+     A                                      COLOR(WHT)
+     A          R MGRCOFOOTER
+     A                                      OVERLAY
+     A                                 23  3'F3=Exit'
+     A                                      COLOR(BLU)
+     A                                 23 13'F5=Refresh'
+     A                                      COLOR(BLU)
+     A                                 23 28'F12=Cancel'
+     A                                      COLOR(BLU)
+     A            MSG2          60A  O 24  3COLOR(RED)

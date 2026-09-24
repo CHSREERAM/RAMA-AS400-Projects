@@ -1,0 +1,18 @@
+     A***************************************************************
+     A* MDNLYTCLMT - DDS Physical File for MD_ANALYTICAL_METHOD
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MDNLYTCLMR
+     A            METHOD_CD     15A
+     A            METHODNAME    80A
+     A                                      VARLEN
+     A                                      ALIAS(METHOD_NAME)
+     A            MTHDVRSN      10A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(METHOD_VERSION)
+     A            VLDTDND        1A
+     A                                      ALIAS(VALIDATED_IND)
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K METHOD_CD

@@ -1,0 +1,39 @@
+PGM
+
+             /* Monitor for errors to prevent the program from crashing mid-run */
+             MONMSG     MSGID(CPF0000)
+
+             CRTSRVPGM SRVPGM(SREERAMC1/UTLSRV) MODULE(SREERAMC1/UTLSRV) +
+                          EXPORT(*ALL)
+
+             CRTSRVPGM SRVPGM(SREERAMC1/STATSRV) MODULE(SREERAMC1/STATSRV) +
+                          BNDSRVPGM(SREERAMC1/UTLSRV) EXPORT(*ALL)
+
+             CRTSRVPGM SRVPGM(SREERAMC1/ESIGSRV) MODULE(SREERAMC1/ESIGSRV) +
+                          BNDSRVPGM(SREERAMC1/UTLSRV) EXPORT(*ALL)
+
+             CRTSRVPGM SRVPGM(SREERAMC1/SECSRV) MODULE(SREERAMC1/SECSRV) +
+                          BNDSRVPGM((SREERAMC1/UTLSRV) (SREERAMC1/ESIGSRV)) +
+                          EXPORT(*ALL)
+
+             CRTSRVPGM SRVPGM(SREERAMC1/HDRSRV) MODULE(SREERAMC1/HDRSRV) +
+                          BNDSRVPGM(SREERAMC1/UTLSRV) EXPORT(*ALL)
+
+             CRTSRVPGM SRVPGM(SREERAMC1/CPPSRV) MODULE(SREERAMC1/CPPSRV) +
+                          BNDSRVPGM(SREERAMC1/UTLSRV) EXPORT(*ALL)
+
+             CRTSRVPGM SRVPGM(SREERAMC1/APRSRV) MODULE(SREERAMC1/APRSRV) +
+                          BNDSRVPGM((SREERAMC1/UTLSRV) (SREERAMC1/ESIGSRV) +
+                          (SREERAMC1/HDRSRV)) +
+                          EXPORT(*ALL)
+
+             ADDBNDDIRE BNDDIR(SREERAMC1/PPQBNDDIR) +
+                       OBJ((SREERAMC1/UTLSRV *SRVPGM) +
+                       (SREERAMC1/STATSRV *SRVPGM) +
+                       (SREERAMC1/ESIGSRV *SRVPGM) +
+                       (SREERAMC1/SECSRV *SRVPGM) +
+                       (SREERAMC1/HDRSRV *SRVPGM) +
+                       (SREERAMC1/CPPSRV *SRVPGM) +
+                       (SREERAMC1/APRSRV *SRVPGM))
+
+             ENDPGM

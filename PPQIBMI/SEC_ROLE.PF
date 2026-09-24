@@ -1,0 +1,15 @@
+     A***************************************************************
+     A* SEC_ROLE   - DDS Physical File for SEC_ROLE
+     A* Security - Role Master
+     A***************************************************************
+     A                                      UNIQUE
+     A          R SEC_ROLER
+     A            ROLE_CD       10A
+     A            ROLE_DESC     60A
+     A                                      VARLEN
+     A            APPRVLLVL      4B 0
+     A                                      ALIAS(APPROVAL_LEVEL)
+     A            ACTIVE_IND     1A
+     A                                      VALUES('Y' 'N')
+     A***************************************************************
+     A          K ROLE_CD

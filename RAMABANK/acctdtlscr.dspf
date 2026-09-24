@@ -1,0 +1,32 @@
+     A*%%TS  SD  20260626  133608  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - ACCOUNT DETAILS SCREEN
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA04(04 'TOGGLE MASK')
+     A                                      INDARA
+     A          R ACCTFMT
+     A                                  1 25'ACCOUNT DETAILS'
+     A                                      DSPATR(HI)
+     A                                  4  5'Customer ID...:'
+     A            $CUSTID       20A  O  4 22
+     A                                  5  5'Customer Name.:'
+     A            $CUSTNAME     40A  O  5 22
+     A                                  7  5'Account Number:'
+     A            $ACCTNUM      20A  O  7 22DSPATR(HI)
+     A                                  8  5'Branch........:'
+     A            $BRANCH       50A  O  8 22
+     A                                  9  5'IFSC..........:'
+     A            $IFSC         11A  O  9 22
+     A                                 10  5'MICR Code.....:'
+     A            $MICR          9A  O 10 22
+     A                                 12  5'Current Bal...:'
+     A            $BALANCE      15Y 2O 12 22EDTCDE(4) COLOR(GRN)
+     A                                 14  5'Nominee Name..:'
+     A            $NOMNAME      40A  O 14 22
+     A                                 15  5'Relation......:'
+     A            $NOMREL       20A  O 15 22
+     A                                 23  2'F3=Exit  F4=Toggle Account Masking'
+     A                                      COLOR(BLU)

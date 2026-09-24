@@ -1,0 +1,13 @@
+     A* ==========================================================
+     A* RAMA BANK - Biller Registration File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R BILLRREC
+     A            REGID          9B 0       COLHDG('Registration ID')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            ACCTNUM       20A         COLHDG('Account Number')
+     A            BILLERID      20A         COLHDG('Biller ID')
+     A            CONN_NUM      50A         COLHDG('Consumer Number')
+     A            AUTOPAY        1A         COLHDG('AutoPay Flag (Y/N)')
+     A                                      DFT('N')
+     A          K REGID

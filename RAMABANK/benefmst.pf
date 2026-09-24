@@ -1,0 +1,14 @@
+     A* ==========================================================
+     A* RAMA BANK - Beneficiary Master File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R BENFREC
+     A            BENEFID        9B 0       COLHDG('Beneficiary ID')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            BENEFNAME    100A         COLHDG('Beneficiary Name')
+     A            BENEFACCT     20A         COLHDG('Beneficiary Account')
+     A            BENEIFSC      11A         COLHDG('Beneficiary IFSC')
+     A            STATUS         1A         COLHDG('Status (P/A/D)')
+     A                                      DFT('P')
+     A            ADDTIME         Z         COLHDG('Add Timestamp')
+     A          K BENEFID

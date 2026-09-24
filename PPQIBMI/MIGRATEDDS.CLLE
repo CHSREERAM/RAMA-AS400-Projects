@@ -1,0 +1,16 @@
+PGM
+
+/* ------------------------------------------------------------- */
+/* MIGRATEDDS                                                    */
+/* Purpose: Run the DDS PF/LF migration utility.                 */
+/* Target : SREERAMC1/PPQIBMI                                    */
+/* IFS    : /home/SREERAMC                                      */
+/* ------------------------------------------------------------- */
+
+/* QSH CMD('/home/SREERAMC/pf/migratedds.sh') */
+
+QSH CMD('sh /home/SREERAMC/pf/migratedds.sh')
+
+
+ENDPGM
+

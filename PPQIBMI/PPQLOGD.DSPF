@@ -1,0 +1,23 @@
+     A**************************************************************
+     A* PPQLOGD - Login Screen
+     A**************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      PRINT
+     A                                      CA03(03 'Exit')
+     A                                      INDARA
+     A          R LOGIN
+     A                                      OVERLAY
+     A                                  1  2'PPQ Protocol Management System'
+     A                                      DSPATR(HI)
+     A                                  1 60'PPQLOG'
+     A                                  2  2'Process Performance Qualification'
+     A                                  4  2'User ID . . . . .'
+     A            $USERID       10A  B  4 22
+     A                                      DSPATR(UL)
+     A                                  6  2'Password  . . . .'
+     A            $PASSWD       20A  B  6 22
+     A                                      DSPATR(UL PC)
+     A            $MSGTXT       60A  O  9  2
+     A                                      COLOR(RED)
+     A                                 22  2'F3=Exit'
+     A                                      COLOR(BLU)

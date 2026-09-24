@@ -1,0 +1,21 @@
+     A*%%***********************************************************************
+     A*%% RAMA BANK - CHANGE PASSWORD
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A          R CHGPWD
+     A                                  1 25'CHANGE PASSWORD'
+     A                                      DSPATR(HI)
+     A                                  4  5'For security, password must have+
+     A                                       uppercase, lowercase, digit, spec+
+     A                                       char.'
+     A                                  6  5'Current Password.:'
+     A            CURPWD        20A  B  6 24DSPATR(ND)
+     A                                  8  5'New Password.....:'
+     A            NEWPWD        20A  B  8 24DSPATR(ND)
+     A                                 10  5'Confirm Password.:'
+     A            CNFPWD        20A  B 10 24DSPATR(ND)
+     A            PWDERR        40A  O 12  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Change Password'
+     A                                      COLOR(BLU)

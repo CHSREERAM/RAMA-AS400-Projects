@@ -1,0 +1,74 @@
+     A*%%TS  SD  20260227  143135  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - MINISTATEMENT
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A          R MINIFMT
+     A*%%TS  SD  20260227  143135  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                  1 25'MINI STATEMENT (LAST 10 TXNS)'
+     A                                      DSPATR(HI)
+     A                                  3  5'Account:'
+     A            ACCTNUM       20A  O  3 15
+     A                                  4  2'-----------------------------------
+     A                                      ----------------------------------'
+     A                                  5  2'Date'
+     A                                  5 15'Time'
+     A                                  5 25'Type'
+     A                                  5 32'Amount'
+     A                                  5 48'Balance'
+     A* Output arrays in RPG but explicitly defined rows in DDS for performance
+     A            DT1           10A  O  7  2
+     A            TM1            8A  O  7 15
+     A            TY1            2A  O  7 25
+     A            AM1           15A  O  7 32
+     A            BL1           15Y 2O  7 48EDTCDE(4)
+     A            DT2           10A  O  8  2
+     A            TM2            8A  O  8 15
+     A            TY2            2A  O  8 25
+     A            AM2           15A  O  8 32
+     A            BL2           15Y 2O  8 48EDTCDE(4)
+     A            DT3           10A  O  9  2
+     A            TM3            8A  O  9 15
+     A            TY3            2A  O  9 25
+     A            AM3           15A  O  9 32
+     A            BL3           15Y 2O  9 48EDTCDE(4)
+     A            DT4           10A  O 10  2
+     A            TM4            8A  O 10 15
+     A            TY4            2A  O 10 25
+     A            AM4           15A  O 10 32
+     A            BL4           15Y 2O 10 48EDTCDE(4)
+     A            DT5           10A  O 11  2
+     A            TM5            8A  O 11 15
+     A            TY5            2A  O 11 25
+     A            AM5           15A  O 11 32
+     A            BL5           15Y 2O 11 48EDTCDE(4)
+     A            DT6           10A  O 12  2
+     A            TM6            8A  O 12 15
+     A            TY6            2A  O 12 25
+     A            AM6           15A  O 12 32
+     A            BL6           15Y 2O 12 48EDTCDE(4)
+     A            DT7           10A  O 13  2
+     A            TM7            8A  O 13 15
+     A            TY7            2A  O 13 25
+     A            AM7           15A  O 13 32
+     A            BL7           15Y 2O 13 48EDTCDE(4)
+     A            DT8           10A  O 14  2
+     A            TM8            8A  O 14 15
+     A            TY8            2A  O 14 25
+     A            AM8           15A  O 14 32
+     A            BL8           15Y 2O 14 48EDTCDE(4)
+     A            DT9           10A  O 15  2
+     A            TM9            8A  O 15 15
+     A            TY9            2A  O 15 25
+     A            AM9           15A  O 15 32
+     A            BL9           15Y 2O 15 48EDTCDE(4)
+     A            DT10          10A  O 16  2
+     A            TM10           8A  O 16 15
+     A            TY10           2A  O 16 25
+     A            AM10          15A  O 16 32
+     A            BL10          15Y 2O 16 48EDTCDE(4)
+     A                                 23  2'F3=Exit'
+     A                                      COLOR(BLU)

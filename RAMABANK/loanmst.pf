@@ -1,0 +1,19 @@
+     A* ==========================================================
+     A* RAMA BANK - Loan Master File (loan-level terms)
+     A* Added because EMISCHDULE only stores per-instalment data;
+     A* there was no table anywhere holding the loan's original
+     A* principal, interest rate, or term. ACCTMST.BALANCE is used
+     A* as the running outstanding balance for the loan account.
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R LOANMREC
+     A            LOANACCT      20A         COLHDG('Loan Account Number')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            PRINAMT       15P 2       COLHDG('Original Principal')
+     A            INTRATE        5P 2       COLHDG('Annual Interest Rate' +
+     A                                              '%')
+     A            TERMMNTH       4P 0       COLHDG('Term in Months')
+     A            STARTDATE       L         COLHDG('Loan Start Date')
+     A            LOANSTS        1A         COLHDG('Status (A/C)')
+     A                                      DFT('A')
+     A          K LOANACCT

@@ -1,0 +1,32 @@
+     A***************************************************************
+     A* PPQ_CPP    - DDS Physical File for PPQ_CPP
+     A* Module 13 - Critical Process Parameters
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQ_CPPR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            CPP_SEQ        4B 0
+     A            STEP_NO        4B 0
+     A                                      ALWNULL
+     A            PARAM_NAME    60A
+     A                                      VARLEN
+     A            LOWERLIMIT    15P 4
+     A                                      ALWNULL
+     A                                      ALIAS(LOWER_LIMIT)
+     A            TARGET        15P 4
+     A                                      ALWNULL
+     A            UPPERLIMIT    15P 4
+     A                                      ALWNULL
+     A                                      ALIAS(UPPER_LIMIT)
+     A            UOM           10A
+     A                                      ALWNULL
+     A            CRTCLTY        1A
+     A                                      ALIAS(CRITICALITY)
+     A                                      VALUES('C' 'K' 'N')
+     A            MON_FREQ      40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K CPP_SEQ

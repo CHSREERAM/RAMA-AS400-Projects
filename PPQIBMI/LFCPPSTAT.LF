@@ -1,0 +1,32 @@
+A***************************************************************
+     A* LFCPPSTAT - Join Logical File over PPQ_CPP + PPQSTTSTCS
+     A* (PPQ_STATISTICS). DDS replacement for SQL view V_PPQ_CPP_STATS.
+     A* JDFTVAL approximates the original LEFT JOIN PPQ_STATISTICS - a
+     A* CPP with no calculated statistics yet still returns a row.
+     A* NOTE: if a CPP has multiple PPQ_STATISTICS rows over time, this
+     A* join returns all of them (one row per calc) - filter/sort by
+     A* CALC_TS in RPG if only the latest is wanted; DDS join LFs cannot
+     A* express "most recent" the way the original correlated join did.
+     A***************************************************************
+     A                                      JDFTVAL
+     A          R CPPSTATR                  JFILE(PPQ_CPP PPQSTTSTCS)
+     A          J                           JOIN(1 2)
+     A                                      JFLD(PROTOCOLID PROTOCOLID)
+     A                                      JFLD(CPP_SEQ CPP_SEQ)
+     A            PROTOCOLID                JREF(1)
+     A                                      ALIAS(PROTOCOL_ID)
+     A            CPP_SEQ                   JREF(1)
+     A            PARAM_NAME
+     A            LOWERLIMIT
+     A                                      ALIAS(LOWER_LIMIT)
+     A            TARGET
+     A            UPPERLIMIT
+     A                                      ALIAS(UPPER_LIMIT)
+     A            CRTCLTY
+     A                                      ALIAS(CRITICALITY)
+     A            CP
+     A            CPK
+     A            PP
+     A            PPK
+     A            MEAN_VAL
+     A            STD_DEV

@@ -1,0 +1,17 @@
+     A***************************************************************
+     A* MDQPMNT    - DDS Physical File for MD_EQUIPMENT
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MDQPMNTR
+     A            EQUIP_CD      15A
+     A            EQUIP_NAME    80A
+     A                                      VARLEN
+     A            EQUIP_TYPE    40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            LOCATIONCD    10A
+     A                                      ALWNULL
+     A                                      ALIAS(LOCATION_CD)
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K EQUIP_CD

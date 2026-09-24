@@ -1,0 +1,73 @@
+     A*%%TS  SD  20260306  110959  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - FUND TRANSFER (4 FORMATS)
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA05(05 'BACK')
+     A                                      INDARA
+     A*=======================================================================
+     A          R TRNDTL
+     A                                  1 25'FUND TRANSFER - DETAILS'
+     A                                      DSPATR(HI)
+     A                                  4  5'From Account..:'
+     A            $FROMACCT     20A  O  4 22DSPATR(HI)
+     A            $FROMBAL      15A  O  4 45
+     A                                  6  5'To Account....:'
+     A            $TOACCT       20A  B  6 22
+     A                                  8  5'To IFSC.......:'
+     A            $TOIFSC       11A  B  8 22
+     A                                 10  5'Transfer Type.:'
+     A            $TRNTYPE       4A  B 10 22
+     A                                 10 28'(NEFT/RTGS/IMPS)'
+     A                                 12  5'Amount........:'
+     A            $TRNAMT       15Y 2B 12 22
+     A            ERRMSG        50A  O 15  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Proceed'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R TRNCNF
+     A                                  1 25'FUND TRANSFER - CONFIRM'
+     A                                      DSPATR(HI)
+     A                                  4  5'From Account..:'
+     A            $CFROMACC     20A  O  4 22
+     A                                  6  5'To Account....:'
+     A            $CTOACCT      20A  O  6 22
+     A                                  7  5'Beneficiary...:'
+     A            $CBENAME      40A  O  7 22DSPATR(HI)
+     A                                  9  5'Amount........:'
+     A            $CAMT         15A  O  9 22COLOR(RED)
+     A                                 15  5'Please review details and+
+     A                                       press ENTER to confirm.'
+     A                                 23  2'F3=Exit F5=Back
+     A                                       Enter=Confirm'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R TRNOTP
+     A                                  1 25'FUND TRANSFER - OTP+
+     A                                       VERIFICATION'
+     A                                      DSPATR(HI)
+     A                                  5  5'An OTP has been sent to+
+     A                                       your registered mobile+
+     A                                       number.'
+     A                                  8  5'Enter OTP.....:'
+     A            $OTPINP        6A  B  8 22DSPATR(ND)
+     A            $OTPERR       40A  O 10  5COLOR(RED)
+     A                                 23  2'F3=Exit   F5=Back+
+     A                                       Enter=Submit'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R TRNRES
+     A*%%TS  SD  20260306  110959  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                  1 25'FUND TRANSFER - RESULT'
+     A                                      DSPATR(HI)
+     A                                  5  5'Transaction Status:'
+     A            $TRNSTAT      10   O  5 25DSPATR(HI)
+     A N90                                  COLOR(GRN)
+     A  90                                  COLOR(RED)
+     A                                  7  5'Reference No......:'
+     A            $REFNO        20A  O  7 25
+     A                                 23  2'Enter=New Transfer+
+     A                                         F3=Dashboard'
+     A                                      COLOR(BLU)

@@ -1,0 +1,11 @@
+     A***************************************************************
+     A* MDDPRTMNT  - DDS Physical File for MD_DEPARTMENT
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MDDPRTMNTR
+     A            DEPT_CD       10A
+     A            DEPT_NAME     60A
+     A                                      VARLEN
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K DEPT_CD

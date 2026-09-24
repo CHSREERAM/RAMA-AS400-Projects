@@ -1,0 +1,28 @@
+     A***************************************************************
+     A* PPQ_CQA    - DDS Physical File for PPQ_CQA
+     A* Module 14 - Critical Quality Attributes
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQ_CQAR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            CQA_SEQ        4B 0
+     A            CQA_NAME      60A
+     A                                      VARLEN
+     A            SPCFCTN      100A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(SPECIFICATION)
+     A            ACCPTCRTR    150A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(ACCEPT_CRITERIA)
+     A            METHOD_SEQ     4B 0
+     A                                      ALWNULL
+     A            SAMPLEFREQ    40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(SAMPLE_FREQ)
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K CQA_SEQ

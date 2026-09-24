@@ -1,0 +1,21 @@
+     A***************************************************************
+     A* MDNVCNDTN  - DDS Physical File for MD_ENV_CONDITION
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MDNVCNDTNR
+     A            ENV_CD        10A
+     A            ENV_NAME      60A
+     A                                      VARLEN
+     A            TEMP_MIN       5P 1
+     A                                      ALWNULL
+     A            TEMP_MAX       5P 1
+     A                                      ALWNULL
+     A            HMDTYMN        5P 1
+     A                                      ALWNULL
+     A                                      ALIAS(HUMIDITY_MIN)
+     A            HMDTYMX        5P 1
+     A                                      ALWNULL
+     A                                      ALIAS(HUMIDITY_MAX)
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K ENV_CD

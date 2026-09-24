@@ -1,0 +1,19 @@
+     A*%%***********************************************************************
+     A*%% RAMA BANK - OTP VERIFICATION POPUP
+     A*%% New screen for OTPVERPGM, which previously had no display file at
+     A*%% all and unconditionally returned "valid" without checking anything.
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'CANCEL')
+     A                                      INDARA
+     A          R OTPFMT
+     A                                      WINDOW(8 6 8 70)
+     A                                  1  3'OTP VERIFICATION'
+     A                                      DSPATR(HI)
+     A                                  3  3'An OTP has been sent to your'+
+     A                                       ' registered mobile number.'
+     A                                  5  3'Enter OTP:'
+     A            OTPINP         6A  B  5 15DSPATR(ND)
+     A            OTPERR        40A  O  6  3COLOR(RED)
+     A                                  7  3'F3=Cancel   Enter=Submit'
+     A                                      COLOR(BLU)

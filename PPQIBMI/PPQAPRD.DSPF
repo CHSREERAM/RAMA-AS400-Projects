@@ -1,0 +1,27 @@
+     A**************************************************************
+     A* PPQAPRD - Approval / Electronic Signature Capture
+     A**************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      PRINT
+     A                                      CA03(03 'Exit')
+     A                                      CA12(12 'Cancel')
+     A                                      INDARA
+     A          R APRDTL
+     A                                      OVERLAY
+     A                                  1  2'Approval - Electronic Signature'
+     A                                      DSPATR(HI)
+     A                                  3  2'Protocol No. . .'
+     A            $A_PROTNO     20A  O  3 22
+     A                                  4  2'Role . . . . . .'
+     A            $A_ROLE       10A  O  4 22
+     A                                  6  2'Decision . . . .'
+     A            $A_DECISN      1A  B  6 22
+     A                                  6 26'(A=Approve  R=Reject)'
+     A                                  8  2'Meaning of Signature'
+     A            $A_MEANING   100A  B  9  2
+     A                                 11  2'Re-enter Password'
+     A            $A_PASSWD     20A  B 11 22
+     A                                      DSPATR(UL PC)
+     A            $MSGTXT       60A  O 13  2
+     A                                      COLOR(RED)
+     A                                 22  2'F3=Exit  F12=Cancel   Enter=Sign'

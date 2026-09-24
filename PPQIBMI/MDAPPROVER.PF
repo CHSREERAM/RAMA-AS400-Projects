@@ -1,0 +1,13 @@
+     A***************************************************************
+     A* MDAPPROVER - DDS Physical File for MD_APPROVER
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MDAPPROVER
+     A            APPROVERCD    10A
+     A                                      ALIAS(APPROVER_CD)
+     A            USER_ID       10A
+     A                                      VARLEN
+     A            ROLE_CD       10A
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K APPROVERCD

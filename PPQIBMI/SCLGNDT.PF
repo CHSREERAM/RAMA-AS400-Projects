@@ -1,0 +1,21 @@
+     A***************************************************************
+     A* SCLGNDT    - DDS Physical File for SEC_LOGIN_AUDIT
+     A* Security - Login/Logoff Audit Trail
+     A***************************************************************
+     A                                      UNIQUE
+     A          R SCLGNDTR
+     A            LGNDTD        18P 0
+     A                                      ALIAS(LOGIN_AUDIT_ID)
+     A            USER_ID       10A
+     A                                      VARLEN
+     A            EVENT_TYPE    10A
+     A            EVENT_TS        Z
+     A            DEVICENAME    10A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(DEVICE_NAME)
+     A***************************************************************
+     A          K LGNDTD
+     A***************************************************************
+     A* CONVERSION NOTES:
+     A*  - LOGIN_AUDIT_ID: SQL IDENTITY not supported in DDS - populate from the

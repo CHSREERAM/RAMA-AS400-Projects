@@ -1,0 +1,25 @@
+A***************************************************************
+     A* LFTEAMLST - Join Logical File over PPQ_TEAM + SEC_USER +
+     A* MDDPRTMNT. DDS replacement for SQL view V_PPQ_TEAM_LIST.
+     A* JDFTVAL on the department join approximates the original
+     A* LEFT JOIN MD_DEPARTMENT (unmatched dept still returns the row).
+     A***************************************************************
+     A                                      JDFTVAL
+     A          R TEAMLSTR                  JFILE(PPQ_TEAM SEC_USER MDDPRTMNT)
+     A          J                           JOIN(1 2)
+     A                                      JFLD(USER_ID USER_ID)
+     A          J                           JOIN(1 3)
+     A                                      JFLD(DEPT_CD DEPT_CD)
+     A            PROTOCOLID
+     A                                      ALIAS(PROTOCOL_ID)
+     A            MEMBER_SEQ
+     A            USER_ID                   JREF(1)
+     A            FULL_NAME
+     A            DSGNTN
+     A                                      ALIAS(DESIGNATION)
+     A            DEPT_CD                   JREF(1)
+     A            DEPT_NAME
+     A            RSPNSBLTY
+     A                                      ALIAS(RESPONSIBILITY)
+     A            APPRSTATUS
+     A                                      ALIAS(APPR_STATUS)

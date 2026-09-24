@@ -1,0 +1,17 @@
+     A***************************************************************
+     A* SCRLPRM    - DDS Physical File for SEC_ROLE_PERM
+     A* Security - User to Role assignment (many-to-many)
+     A***************************************************************
+     A                                      UNIQUE
+     A          R SCRLPRMR
+     A            USER_ID       10A
+     A                                      VARLEN
+     A            ROLE_CD       10A
+     A            ASSIGNEDTS      Z
+     A                                      ALIAS(ASSIGNED_TS)
+     A            ASSIGNEDBY    10A
+     A                                      VARLEN
+     A                                      ALIAS(ASSIGNED_BY)
+     A***************************************************************
+     A          K USER_ID
+     A          K ROLE_CD

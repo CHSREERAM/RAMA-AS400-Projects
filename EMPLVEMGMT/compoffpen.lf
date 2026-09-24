@@ -1,0 +1,7 @@
+A               R COMPEREC                  PFILE(COMPOFF)
+A                 COMSTS
+A                 COMEMPID
+A                 COMWRDT
+A               K COMEMPID
+A               K COMWRDT
+A               S COMSTS                    COMP(EQ 'P')

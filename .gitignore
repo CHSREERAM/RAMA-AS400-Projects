@@ -1,0 +1,13 @@
+# Ignore everything by default
+*
+
+# Only allow the 3 requested folders
+!/EMPLVEMGMT/
+!/EMPLVEMGMT/**
+!/PPQIBMI/
+!/PPQIBMI/**
+!/RAMABANK/
+!/RAMABANK/**
+
+# Keep the ignore file itself
+!.gitignore

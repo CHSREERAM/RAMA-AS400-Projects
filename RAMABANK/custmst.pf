@@ -1,0 +1,19 @@
+     A* ==========================================================
+     A* RAMA BANK - Customer Master File
+     A* BUG-02 FIX: Renamed KYC_STATUS -> KYCSTS to match all
+     A* program references (PROFILEPGM, adminpgm, DASHPGM etc).
+     A* BUG-03 FIX: Renamed PAN -> PANNO to match adminpgm's KYC
+     A* subfile SELECT which uses PANNO.
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R CUSTMREC
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            FULLNAME      50A         COLHDG('Full Name')
+     A            PANNO         10A         COLHDG('PAN Number')
+     A            AADHAAR       12A         COLHDG('Aadhaar Number')
+     A            MOBILE        15A         COLHDG('Mobile Number')
+     A            EMAIL         50A         COLHDG('Email Address')
+     A            ADDRESS       60A         COLHDG('Physical Address')
+     A            KYCSTS         1A         COLHDG('KYC Status (P/A/R)')
+     A                                      DFT('P')
+     A          K CUSTID

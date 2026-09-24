@@ -1,0 +1,25 @@
+     A***************************************************************
+     A* PPQPROCESS - DDS Physical File for PPQ_PROCESS
+     A* Module 12 - Manufacturing Process Flow
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQPROCESR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            STEP_NO        4B 0
+     A            OPERATION    100A
+     A                                      VARLEN
+     A            EQUIP_SEQ      4B 0
+     A                                      ALWNULL
+     A            CPP_IND        1A
+     A            SMPLPNTND      1A
+     A                                      ALIAS(SAMPLE_POINT_IND)
+     A            DRTNMN         9P 2
+     A                                      ALWNULL
+     A                                      ALIAS(DURATION_MIN)
+     A            OPERATOR      10A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K STEP_NO

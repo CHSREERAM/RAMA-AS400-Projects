@@ -1,0 +1,14 @@
+     A***************************************************************
+     A* MDMFGAREA  - DDS Physical File for MD_MFG_AREA
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MDMFGAREAR
+     A            AREA_CD       10A
+     A            AREA_NAME     60A
+     A                                      VARLEN
+     A            ROOM_CLASS    20A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K AREA_CD

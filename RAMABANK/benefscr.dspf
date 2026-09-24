@@ -1,0 +1,39 @@
+     A*%%***********************************************************************
+     A*%% RAMA BANK - BENEFICIARY MANAGEMENT
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA06(06 'ADD')
+     A                                      INDARA
+     A          R BENSFL                    SFL
+     A            OPT            1A  B  8  2
+     A            BENNAME       30A  O  8  5
+     A            BENACCT       20A  O  8 37
+     A            BENIFSC       11A  O  8 59
+     A            STATUS         1A  O  8 72
+     A  80                                  COLOR(RED)
+     A*  Status P = Cooling (Pending)
+     A*
+     A          R BENCTL                    SFLCTL(BENSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'BENEFICIARY MANAGEMENT'
+     A                                      DSPATR(HI)
+     A                                  3  5'Customer ID:'
+     A            CUSTID        20A  O  3 18
+     A                                  6  2'Opt  Name'
+     A*
+     A          R BENADD
+     A                                 20  5'New Beneficiary Name:'
+     A            NEWNAME       30A  B 20 27
+     A                                 21  5'Account Number......:'
+     A            NEWACCT       20A  B 21 27
+     A                                 22  5'IFSC Code...........:'
+     A            NEWIFSC       11A  B 22 27
+     A            ERRMSG        40A  O 23 40COLOR(RED)
+     A                                 23  2'F3=Exit  F6=Add  4=Delete(Opt)'
+     A                                      COLOR(BLU)

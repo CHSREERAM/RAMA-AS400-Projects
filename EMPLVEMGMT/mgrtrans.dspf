@@ -1,0 +1,379 @@
+     A*%%TS  SD  20260203  092502  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A                                      DSPSIZ(24 80 *DS3)
+     A          R ARVLVE                    SFL
+     A*%%TS  SD  20260128  055810  SREERAMC    REL-V7R5M0  5770-WDS
+     A            OPT            1S 0B  9  3
+     A            $EMPID         4S 0O  9  7
+     A            $LVEFRDT       8S 0O  9 35
+     A            $LVETODT       8S 0O  9 45
+     A            $LVETDAY       2S 0O  9 59
+     A            $LVESTS        1A  O  9 75
+     A            $EMPNAM       20   O  9 13
+     A            $LVECLTY       2   O  9 67
+     A          R ARVLVECTL                 SFLCTL(ARVLVE)
+     A*%%TS  SD  20260131  124523  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      CF05(05 'Refresh')
+     A                                      CF10(10 'Switch view')
+     A                                      OVERLAY
+     A  25                                  SFLDSP
+     A  26                                  SFLDSPCTL
+     A  27                                  SFLCLR
+     A  28                                  SFLEND(*MORE)
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0010)
+     A                                  1  3'USER: MANAGER'
+     A                                      COLOR(WHT)
+     A                                  2  3'TEAM:'
+     A                                      COLOR(WHT)
+     A                                  1 25'Employee Leave Management System'
+     A                                      DSPATR(RI)
+     A                                      COLOR(YLW)
+     A                                  2 31'Approve/Deny Leaves'
+     A                                      COLOR(YLW)
+     A                                  1 65'DATE:'
+     A                                      COLOR(WHT)
+     A                                  1 72DATE
+     A                                      EDTCDE(Y)
+     A                                  2 65'TIME:'
+     A                                      COLOR(WHT)
+     A                                  2 72TIME
+     A                                  4  3'Type options, press Enter.'
+     A                                      COLOR(BLU)
+     A                                  6  5'1=Approve'
+     A                                      COLOR(BLU)
+     A                                  6 17'2=Deny'
+     A                                      COLOR(BLU)
+     A                                  6 26'5=Description'
+     A                                      COLOR(BLU)
+     A                                  8  3'OPT'
+     A                                      COLOR(WHT)
+     A                                  8  8'ID'
+     A                                      COLOR(WHT)
+     A                                  8 20'Name'
+     A                                      COLOR(WHT)
+     A                                  8 35'From Date'
+     A                                      COLOR(WHT)
+     A                                  8 45'To Date'
+     A                                      COLOR(WHT)
+     A                                  8 54'Total Days'
+     A                                      COLOR(WHT)
+     A                                  8 73'Status'
+     A                                      COLOR(WHT)
+     A                                  8 65'LVETYP'
+     A                                      COLOR(WHT)
+     A          R ARLVFOOTER
+     A*%%TS  SD  20260131  180450  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                 23  3'F3=Exit'
+     A                                      COLOR(BLU)
+     A                                 23 14'F5=Refresh'
+     A                                      COLOR(BLU)
+     A                                 23 28'F12=Cancel'
+     A                                      COLOR(BLU)
+     A            MSG           50A  O 24  3COLOR(RED)
+     A                                 23 40'F10=Switch'
+     A                                      COLOR(BLU)
+     A          R VIEWEMP
+     A*%%TS  SD  20260131  111346  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                  1  3'USER: MANAGER'
+     A                                      COLOR(WHT)
+     A                                  1 25'Emploee Leave Management System'
+     A                                      DSPATR(RI)
+     A                                      COLOR(YLW)
+     A                                  2 34'View Employee'
+     A                                      COLOR(YLW)
+     A                                  1 66'DATE:'
+     A                                      COLOR(WHT)
+     A                                  1 72DATE
+     A                                      EDTCDE(Y)
+     A                                  2 66'TIME:'
+     A                                      COLOR(WHT)
+     A                                  2 72TIME
+     A                                  4  2'Type choices, press Enter.'
+     A                                      COLOR(BLU)
+     A                                  7  2'Employee ID:'
+     A                                      COLOR(WHT)
+     A                                  8  2'Name:'
+     A                                      COLOR(WHT)
+     A                                  9  2'Gender:'
+     A                                      COLOR(WHT)
+     A                                 10  2'DOB:'
+     A                                      COLOR(WHT)
+     A                                 11  2'Address:'
+     A                                      COLOR(WHT)
+     A                                 12  2'Country:'
+     A                                      COLOR(WHT)
+     A                                 13  2'Team:'
+     A                                      COLOR(WHT)
+     A                                 14  2'Designation:'
+     A                                      COLOR(WHT)
+     A                                 15  2'Mobile No.:'
+     A                                      COLOR(WHT)
+     A                                 16  2'Email Office:'
+     A                                      COLOR(WHT)
+     A                                 17  2'Email Pesonal:'
+     A                                      COLOR(WHT)
+     A                                 18  2'Employee Status:'
+     A                                      COLOR(WHT)
+     A                                  9 37'City:'
+     A                                      COLOR(WHT)
+     A                                 10 37'DOJ:'
+     A                                      COLOR(WHT)
+     A                                 12 37'Pin Code:'
+     A                                      COLOR(WHT)
+     A                                 13 37'Project ID:'
+     A                                      COLOR(WHT)
+     A                                 14 37'Manager ID:'
+     A                                      COLOR(WHT)
+     A                                 15 37'Alt Number:'
+     A                                      COLOR(WHT)
+     A                                 18 37'Role:'
+     A                                      COLOR(WHT)
+     A                                 23  3'F3=Exit'
+     A                                      COLOR(BLU)
+     A                                 23 13'F5=Refresh'
+     A                                      COLOR(BLU)
+     A                                 23 25'F12=Cancel'
+     A                                      COLOR(BLU)
+     A            $EMPID1        4S 0O  7 15
+     A            $EMPNAM1      30   O  8  8DSPATR(UL)
+     A            $EMPGND1       1   O  9 10DSPATR(UL)
+     A            $EMPDOB1       8  0O 10  7DSPATR(UL)
+     A            $EMPADR11     50   O 11 11DSPATR(UL)
+     A            $EMPCTRY1     20   O 12 11DSPATR(UL)
+     A            $EMPTEAM1     10   O 13  8DSPATR(UL)
+     A            $EMPDES1      20   O 14 15DSPATR(UL)
+     A            $EMPCON1      10  0O 15 14DSPATR(UL)
+     A            $EMPEMLO1     30   O 16 16COLOR(BLU)
+     A                                      DSPATR(UL)
+     A            $EMPEMLP1     30   O 17 17COLOR(BLU)
+     A                                      DSPATR(UL)
+     A            $EMPSTS1       1   O 18 20DSPATR(UL)
+     A            $EMPROL1       1   O 18 43DSPATR(UL)
+     A            $EMPCITY1     20   O  9 43DSPATR(UL)
+     A            $EMPDOJ1       8  0O 10 42DSPATR(UL)
+     A            $EMPPC1        6  0O 12 47DSPATR(UL)
+     A            $EMPPRJID1     6   O 13 49DSPATR(UL)
+     A            $EMPMGRID1     4  0O 14 49DSPATR(UL)
+     A            $EMPEMG1      10  0O 15 49DSPATR(UL)
+     A******************************************************************
+     A          R ARVCOMP                   SFL
+     A*%%TS  SD  20260131  124523  SREERAMC    REL-V7R5M0  5770-WDS
+     A            OPT            1S 0B  9  3
+     A            $EMPID         4S 0O  9  7
+     A            $COMWRDT       8S 0O  9 36
+     A            $COMSTS        1A  O  9 59
+     A            $EMPNAM       20A  O  9 13
+     A            $COMDYTY       2A  O  9 50
+     A          R ARVCOMPCTL                SFLCTL(ARVCOMP)
+     A*%%TS  SD  20260131  124523  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      CF05(05 'Refresh')
+     A                                      CF10(10 'Switch view')
+     A                                      OVERLAY
+     A  30                                  SFLDSP
+     A  31                                  SFLDSPCTL
+     A  32                                  SFLCLR
+     A  33                                  SFLEND(*MORE)
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0010)
+     A                                  1  3'USER: MANAGER'
+     A                                      COLOR(WHT)
+     A                                  2  3'TEAM:'
+     A                                      COLOR(WHT)
+     A                                  1 25'Employee Leave Management System'
+     A                                      DSPATR(RI)
+     A                                      COLOR(YLW)
+     A                                  2 31'Approve/Deny COMP-OFF'
+     A                                      COLOR(YLW)
+     A                                  1 65'DATE:'
+     A                                      COLOR(WHT)
+     A                                  1 72DATE
+     A                                      EDTCDE(Y)
+     A                                  2 65'TIME:'
+     A                                      COLOR(WHT)
+     A                                  2 72TIME
+     A                                  4  3'Type options, press Enter.'
+     A                                      COLOR(BLU)
+     A                                  6  5'1=Approve'
+     A                                      COLOR(BLU)
+     A                                  6 17'2=Deny'
+     A                                      COLOR(BLU)
+     A                                  6 26'5=Description'
+     A                                      COLOR(BLU)
+     A                                  8  3'OPT'
+     A                                      COLOR(WHT)
+     A                                  8  8'ID'
+     A                                      COLOR(WHT)
+     A                                  8 21'Name'
+     A                                      COLOR(WHT)
+     A                                  8 58'Status'
+     A                                      COLOR(WHT)
+     A                                  8 48'Day Type'
+     A                                      COLOR(WHT)
+     A                                  8 35'Worked Date'
+     A                                      COLOR(WHT)
+     A*****************************************************************
+     A*  5.2.6 LEAVE DETAILS POP-UP WINDOW
+     A*****************************************************************
+     A          R LVEDETAIL
+     A*%%TS  SD  20260202  150556  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      WINDOW(4 10 19 60)
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      OVERLAY
+     A                                  1 18'Leave Description'
+     A                                      DSPATR(HI)
+     A                                      COLOR(WHT)
+     A                                  3  2'Select one of the following:'
+     A                                      COLOR(YLW)
+     A                                  4  2'1= Approve  2= Deny'
+     A                                      COLOR(BLU)
+     A                                  6  2'Employee ID  :'
+     A                                      COLOR(WHT)
+     A            W_EMPID        4S 0O  6 18
+     A                                  7  2'Employee Name:'
+     A                                      COLOR(WHT)
+     A            W_EMPNAM      20A  O  7 18
+     A                                  8  2'From Date    :'
+     A                                      COLOR(WHT)
+     A            W_FRDT         8S 0O  8 18
+     A                                  9  2'To Date      :'
+     A                                      COLOR(WHT)
+     A            W_TODT         8S 0O  9 18
+     A                                 10  2'Total Days   :'
+     A                                      COLOR(WHT)
+     A            W_TOTDAY       5S 1O 10 18
+     A                                 11  2'Leave Type   :'
+     A                                      COLOR(WHT)
+     A            W_LVETYP       2A  O 11 18
+     A                                 11 25'Balance:'
+     A                                      COLOR(WHT)
+     A            W_LVEBAL       3S 1O 11 34
+     A                                 12  2'Reason       :'
+     A                                      COLOR(WHT)
+     A            W_REASON      30A  O 12 18
+     A                                 13  2'Status       :'
+     A                                      COLOR(WHT)
+     A            W_STATUS       1A  O 13 18
+     A                                 15  2'Selection ===>'
+     A                                      COLOR(TRQ)
+     A            W_OPT          1S 0B 15 18
+     A                                 17  2'F3=Exit   F12=Cancel'
+     A                                      COLOR(BLU)
+     A                                  8 30'From Day Type:'
+     A                                      COLOR(WHT)
+     A                                  9 30'To Day Type  :'
+     A                                      COLOR(WHT)
+     A            W_FRDTY        2   O  8 45
+     A            W_TODTY        2   O  9 45
+     A          R CODETAIL
+     A*%%TS  SD  20260203  092502  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      OVERLAY
+     A                                      WINDOW(5 10 18 60)
+     A                                  1 21'Comp-off Description'
+     A                                      DSPATR(HI)
+     A                                      COLOR(WHT)
+     A                                  2  1'Select one of the following.'
+     A                                      COLOR(YLW)
+     A                                  3  3'1=Approve'
+     A                                      COLOR(BLU)
+     A                                  3 15'2=Deny'
+     A                                      COLOR(BLU)
+     A                                  5  2'Employee ID  :'
+     A                                      COLOR(WHT)
+     A                                  6  2'Employee Name:'
+     A                                      COLOR(WHT)
+     A                                  7  2'Worked Date  :'
+     A                                      COLOR(WHT)
+     A                                  8  2'Day Type     :'
+     A                                      COLOR(WHT)
+     A                                  9  2'Reason       :'
+     A                                      COLOR(WHT)
+     A                                 10  2'Status       :'
+     A                                      COLOR(WHT)
+     A                                 11  2'Project ID   :'
+     A                                      COLOR(WHT)
+     A                                 13  2'Selection'
+     A                                 14  2'==>'
+     A                                 16  3'F3=Exit'
+     A                                      COLOR(BLU)
+     A                                 16 13'F12=Cancel'
+     A                                      COLOR(BLU)
+     A            C_EMPID        4S 0O  5 17
+     A            C_EMPNAM      20A  O  6 17
+     A            C_WRDT         8S 0O  7 17
+     A            C_DYTY         2A  O  8 17
+     A            C_RSN         40A  O  9 17
+     A            C_STS          1A  O 10 17
+     A            C_PRJD         6A  O 11 17
+     A            C_OPT          1S 0B 14  7
+     A*****************************************************************
+     A*  5.2.10 TEAM LEAVE HISTORY SUBFILE
+     A*****************************************************************
+     A          R TEAMHIST                  SFL
+     A            H_OPT          1S 0B  9  3
+     A            H_EMPID        4S 0O  9  7
+     A            H_EMPNAM      20A  O  9 13
+     A            H_FRDT         8S 0O  9 35
+     A            H_TODT         8S 0O  9 45
+     A            H_TOTDAY       2S 0O  9 55
+     A            H_TYPE         2A  O  9 60
+     A            H_STS          1A  O  9 65
+     A            H_REASON      10A  O  9 68
+
+     A          R TEAMHISTC                 SFLCTL(TEAMHIST)
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      CF05(05 'Refresh')
+     A                                      CF10(10 'Switch View')
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0010)
+     A                                  1  3'USER: MANAGER'
+     A                                      COLOR(WHT)
+     A                                  1 25'Employee Leave Management System'
+     A                                      DSPATR(RI)
+     A                                      COLOR(YLW)
+     A                                  2 32'Team Leave HISTORY'
+     A                                      COLOR(YLW)
+     A                                  1 65'DATE:'
+     A                                      COLOR(WHT)
+     A                                  1 72DATE
+     A                                      EDTCDE(Y)
+     A                                  2 65'TIME:'
+     A                                      COLOR(WHT)
+     A                                  2 72TIME
+     A                                  4  3'Type options, press Enter.'
+     A                                      COLOR(BLU)
+     A                                  6  3'5=View Details'
+     A                                      COLOR(BLU)
+     A                                  8  3'OPT'
+     A                                      COLOR(WHT)
+     A                                  8  8'ID'
+     A                                      COLOR(WHT)
+     A                                  8 20'Name'
+     A                                      COLOR(WHT)
+     A                                  8 35'From Date'
+     A                                      COLOR(WHT)
+     A                                  8 45'To Date'
+     A                                      COLOR(WHT)
+     A                                  8 54'Days'
+     A                                      COLOR(WHT)
+     A                                  8 60'Typ'
+     A                                      COLOR(WHT)
+     A                                  8 64'Sts'
+     A                                      COLOR(WHT)
+     A                                  8 68'Reason'
+     A                                      COLOR(WHT)

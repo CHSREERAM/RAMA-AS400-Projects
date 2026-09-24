@@ -1,0 +1,25 @@
+     A***************************************************************
+     A* PPQQPMNT   - DDS Physical File for PPQ_EQUIPMENT
+     A* Module 8 - Equipment Qualification
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQQPMNTR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            EQUIP_SEQ      4B 0
+     A            EQUIP_CD      15A
+     A            IQ_STATUS      1A
+     A            OQ_STATUS      1A
+     A            PQ_STATUS      1A
+     A            CAL_DUE_DT      L
+     A                                      ALWNULL
+     A            CLNSTTS       20A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(CLEAN_STATUS)
+     A            LOCATIONCD    10A
+     A                                      ALWNULL
+     A                                      ALIAS(LOCATION_CD)
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K EQUIP_SEQ

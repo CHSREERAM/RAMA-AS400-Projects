@@ -1,0 +1,18 @@
+     A***************************************************************
+     A* MDMATERIAL - DDS Physical File for MD_MATERIAL
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MDMATERIAR
+     A            MATERIALCD    15A
+     A                                      ALIAS(MATERIAL_CD)
+     A            MTRLNM        80A
+     A                                      VARLEN
+     A                                      ALIAS(MATERIAL_NAME)
+     A            MTRLTYP        1A
+     A                                      ALIAS(MATERIAL_TYPE)
+     A            DEFAULTUOM     6A
+     A                                      ALWNULL
+     A                                      ALIAS(DEFAULT_UOM)
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K MATERIALCD

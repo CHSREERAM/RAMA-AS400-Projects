@@ -1,0 +1,31 @@
+     A***************************************************************
+     A* PPQ_AUDIT  - DDS Physical File for PPQ_AUDIT
+     A* System-wide audit trail - trigger-populated only
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQ_AUDITR
+     A            AUDIT_ID      18P 0
+     A            PROTOCOLID    18P 0
+     A                                      ALWNULL
+     A                                      ALIAS(PROTOCOL_ID)
+     A            TABLE_NAME    30A
+     A                                      VARLEN
+     A            ACTION         1A
+     A            KEY_VALUE     60A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            COLUMNNAME    30A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(COLUMN_NAME)
+     A            OLD_VALUE    200A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            NEW_VALUE    200A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            CHANGED_BY    10A
+     A                                      VARLEN
+     A            CHANGED_TS      Z
+     A***************************************************************
+     A          K AUDIT_ID

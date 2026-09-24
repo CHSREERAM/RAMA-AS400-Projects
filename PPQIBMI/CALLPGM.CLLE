@@ -1,0 +1,9 @@
+PGM
+
+             /* Monitor for errors to prevent the program from crashing mid-run */
+            /*  MONMSG     MSGID(CPF0000) */
+
+            /*  CALL PGM(SREERAMC1/SRVPGM) */
+             WRKOBJ OBJ(SREERAMC1/*ALL) OBJTYPE(*SRVPGM)
+
+             ENDPGM

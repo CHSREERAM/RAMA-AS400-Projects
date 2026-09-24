@@ -1,0 +1,11 @@
+     A* ==========================================================
+     A* RAMA BANK - Audit Log File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R AUDITREC
+     A            LOGID          9B 0       COLHDG('Log ID')
+     A            LOGTS           Z         COLHDG('Log Timestamp')
+     A            USERID        20A         COLHDG('User ID')
+     A            ACTION        50A         COLHDG('Action')
+     A            DETAILS      500A         COLHDG('Details')
+     A          K LOGID

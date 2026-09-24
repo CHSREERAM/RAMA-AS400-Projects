@@ -1,0 +1,33 @@
+     A***************************************************************
+     A* SEC_USER   - DDS Physical File for SEC_USER
+     A* Security - User Profile
+     A***************************************************************
+     A                                      UNIQUE
+     A          R SEC_USERR
+     A            USER_ID       10A
+     A                                      VARLEN
+     A            FULL_NAME     60A
+     A                                      VARLEN
+     A            EMAIL         80A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            DEPT_CD       10A
+     A                                      ALWNULL
+     A            PSSWRDHSH    128A
+     A                                      VARLEN
+     A                                      ALIAS(PASSWORD_HASH)
+     A            PSSWRDCHGD      L
+     A                                      ALWNULL
+     A                                      ALIAS(PASSWORD_CHG_DT)
+     A            FLDLGNCNT      4B 0
+     A                                      ALIAS(FAILED_LOGIN_CNT)
+     A            LOCKED_IND     1A
+     A                                      VALUES('Y' 'N')
+     A            ACTIVE_IND     1A
+     A                                      VALUES('Y' 'N')
+     A            CREATE_TS       Z
+     A            LSTLGNTS        Z
+     A                                      ALWNULL
+     A                                      ALIAS(LAST_LOGIN_TS)
+     A***************************************************************
+     A          K USER_ID

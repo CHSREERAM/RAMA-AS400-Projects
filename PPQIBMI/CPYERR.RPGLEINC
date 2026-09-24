@@ -1,0 +1,24 @@
+**FREE
+      //---------------------------------------------------------------
+      // CPYERR - Standard error / status data structure
+      // /copy into every SQLRPGLE program and service program
+      //---------------------------------------------------------------
+      dcl-ds ErrorInfo_t qualified template;
+        Success     ind;
+        SqlCode     int(10);
+        SqlState    char(5);
+        MsgId       char(7);
+        MsgText     varchar(200);
+        Procedure   varchar(40);
+        OccurredTs  timestamp;
+      end-ds;
+
+      // Standard exception subprocedure prototype - implemented in UTLSRV
+      dcl-pr LogError extproc('LOGERROR');
+        pProcedure   varchar(40) const;
+        pSqlCode     int(10) const;
+        pSqlState    char(5) const;
+        pMsgText     varchar(200) const;
+        pUserId      varchar(10) const;
+      end-pr;
+

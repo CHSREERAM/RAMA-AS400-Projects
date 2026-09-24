@@ -1,0 +1,30 @@
+     A***************************************************************
+     A* PPQ_TEAM   - DDS Physical File for PPQ_TEAM
+     A* Module 5 - Execution Team
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQ_TEAMR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            MEMBER_SEQ     4B 0
+     A            USER_ID       10A
+     A                                      VARLEN
+     A            DSGNTN        60A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(DESIGNATION)
+     A            DEPT_CD       10A
+     A                                      ALWNULL
+     A            RSPNSBLTY    100A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(RESPONSIBILITY)
+     A            APPRSTATUS    10A
+     A                                      ALIAS(APPR_STATUS)
+     A                                      VALUES('PENDING' 'APPROVED'        +
+     A                                      'REJECTED')
+     A            ESIG_ID       18P 0
+     A                                      ALWNULL
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K MEMBER_SEQ

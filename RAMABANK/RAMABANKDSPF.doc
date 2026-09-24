@@ -1,0 +1,743 @@
+     A*%%TS  SD  20260626  133608  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - ACCOUNT DETAILS SCREEN
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA04(04 'TOGGLE MASK')
+     A                                      INDARA
+     A          R ACCTFMT
+     A                                  1 25'ACCOUNT DETAILS'
+     A                                      DSPATR(HI)
+     A                                  4  5'Customer ID...:'
+     A            $CUSTID       20A  O  4 22
+     A                                  5  5'Customer Name.:'
+     A            $CUSTNAME     40A  O  5 22
+     A                                  7  5'Account Number:'
+     A            $ACCTNUM      20A  O  7 22DSPATR(HI)
+     A                                  8  5'Branch........:'
+     A            $BRANCH       50A  O  8 22
+     A                                  9  5'IFSC..........:'
+     A            $IFSC         11A  O  9 22
+     A                                 10  5'MICR Code.....:'
+     A            $MICR          9A  O 10 22
+     A                                 12  5'Current Bal...:'
+     A            $BALANCE      15Y 2O 12 22EDTCDE(4) COLOR(GRN)
+     A                                 14  5'Nominee Name..:'
+     A            $NOMNAME      40A  O 14 22
+     A                                 15  5'Relation......:'
+     A            $NOMREL       20A  O 15 22
+     A                                 23  2'F3=Exit  F4=Toggle Account Masking'
+     A                                      COLOR(BLU)
+     A*%%TS  SD  20260627  091110  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - ADMIN PANEL (expanded)
+     A*%% Original had only a menu shell; options 1-3 were unimplemented.
+     A*%% Added: ADMNMENU (menu), CUSTSFL/CUSTCTL (customer search),
+     A*%% KYCSFL/KYCCTL (KYC approval), MCRSFL/MCRCTL (maker-checker
+     A*%% approval queue for UPDATEREQ records).
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A          R ADMNMENU
+     A                                  1 25'RAMA BANK - ADMIN PANEL'
+     A                                      DSPATR(HI)
+     A                                  4  5'Welcome Admin User.'
+     A                                  6  5'1. Customer Search & View'
+     A                                  7  5'2. KYC Verification & Approval'
+     A                                  8  5'3. Maker-Checker Update'+
+     A                                       ' Approvals'
+     A                                  9  5'4. Scheduled Report'+
+     A                                       ' Generation (SBMJOB)'
+     A                                 11  5'Selection:'
+     A            MENUOPT        1A  B 11 16
+     A            ERRMSG        40A  O 13  5COLOR(RED)
+     A                                 23  2'F3=Dashboard   Enter=Proceed'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R CUSTSFL                   SFL
+     A            C_CUSTID      20A  O  8  2
+     A            C_NAME        30A  O  8 24
+     A            C_MOBILE      15A  O  8 56
+     A            C_KYC          1A  O  8 73
+     A*
+     A          R CUSTCTL                   SFLCTL(CUSTSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'ADMIN - CUSTOMER SEARCH'
+     A                                      DSPATR(HI)
+     A                                  3  5'Search (CustID/Name, blank=all):'
+     A            SRCHVAL       30A  B  3 39
+     A                                  6  2'Customer ID'
+     A                                  6 24'Name'
+     A                                  6 56'Mobile'
+     A                                  6 73'KYC'
+     A*
+     A          R CUSTFTR
+     A                                      OVERLAY
+     A            ERRMSG        40A  O 21  2COLOR(RED)
+     A                                 23  2'F3=Back to Menu   Enter=Search'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R KYCSFL                    SFL
+     A            K_SEL          1A  B  8  2
+     A            K_CUSTID      20A  O  8  5
+     A            K_NAME        30A  O  8 27
+     A            K_PAN         10A  O  8 58
+     A            K_KYC          1A  O  8 70
+     A*
+     A          R KYCCTL                    SFLCTL(KYCSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'ADMIN - KYC VERIFICATION'
+     A                                      DSPATR(HI)
+     A                                  3  5'Showing customers with KYC'+
+     A                                       ' Status = Pending'
+     A                                  6  2'Opt'
+     A                                  6  6'Customer ID'
+     A                                  6 27'Name'
+     A                                  6 58'PAN'
+     A                                  6 70'KYC'
+     A*
+     A          R KYCFTR
+     A                                      OVERLAY
+     A                                 19  5'Opt: A=Approve  R=Reject'
+     A                                      COLOR(BLU)
+     A            ERRMSG        40A  O 21  2COLOR(RED)
+     A                                 23  2'F3=Back to Menu   Enter=Apply'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R MCRSFL                    SFL
+     A            M_SEL          1A  B  8  2
+     A            M_CUSTID      20A  O  8  5
+     A            M_FIELD       10A  O  8 27
+     A            M_OLDVAL      20A  O  8 39
+     A            M_NEWVAL      20A  O  8 61
+     A*
+     A          R MCRCTL                    SFLCTL(MCRSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'ADMIN - MAKER-CHECKER'+
+     A                                       ' APPROVALS'
+     A                                      DSPATR(HI)
+     A                                  3  5'Pending profile/address'+
+     A                                       ' update requests'
+     A                                  6  2'Opt'
+     A                                  6  6'Customer ID'
+     A                                  6 27'Field'
+     A                                  6 39'Old Value'
+     A                                  6 61'New Value'
+     A*
+     A          R MCRFTR
+     A                                      OVERLAY
+     A                                 19  5'Opt: A=Approve  R=Reject'
+     A                                      COLOR(BLU)
+     A            ERRMSG        40A  O 21  2COLOR(RED)
+     A                                 23  2'F3=Back to Menu   Enter=Apply'
+     A                                      COLOR(BLU)
+     A*%%***********************************************************************
+     A*%% RAMA BANK - BENEFICIARY MANAGEMENT
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA06(06 'ADD')
+     A                                      INDARA
+     A          R BENSFL                    SFL
+     A            OPT            1A  B  8  2
+     A            BENNAME       30A  O  8  5
+     A            BENACCT       20A  O  8 37
+     A            BENIFSC       11A  O  8 59
+     A            STATUS         1A  O  8 72
+     A  80                                  COLOR(RED)
+     A*  Status P = Cooling (Pending)
+     A*
+     A          R BENCTL                    SFLCTL(BENSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'BENEFICIARY MANAGEMENT'
+     A                                      DSPATR(HI)
+     A                                  3  5'Customer ID:'
+     A            CUSTID        20A  O  3 18
+     A                                  6  2'Opt  Name'
+     A*
+     A          R BENADD
+     A                                 20  5'New Beneficiary Name:'
+     A            NEWNAME       30A  B 20 27
+     A                                 21  5'Account Number......:'
+     A            NEWACCT       20A  B 21 27
+     A                                 22  5'IFSC Code...........:'
+     A            NEWIFSC       11A  B 22 27
+     A            ERRMSG        40A  O 23 40COLOR(RED)
+     A                                 23  2'F3=Exit  F6=Add  4=Delete(Opt)'
+     A                                      COLOR(BLU)
+     A*%%***********************************************************************
+     A*%% RAMA BANK - BILL PAYMENT SCREEN
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A          R BILLSFL                   SFL
+     A            S_SEL          1A  B  7  2
+     A            S_BILLER      20A  O  7  5
+     A            S_CAT         15A  O  7 27
+     A            S_CONNUM      20A  O  7 44
+     A            S_AUTOPAY      1A  O  7 66
+     A*
+     A          R BILLCTL                   SFLCTL(BILLSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'BILL PAYMENTS'
+     A                                      DSPATR(HI)
+     A                                  3  5'From Account..:'
+     A            ACCTNUM       20A  O  3 22
+     A            BALANCE       15Y 2O  3 45EDTCDE(4)
+     A                                  5  2'Opt'
+     A                                  5  6'Biller Name'
+     A                                  5 27'Category'
+     A                                  5 44'Consumer No.'
+     A                                  5 66'AutoPay'
+     A*
+     A          R BILLPAY
+     A                                 18  5'Amount to Pay.:'
+     A            PAYAMT        10Y 2B 18 22
+     A            ERRMSG        40A  O 20  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Pay Selected Bill'
+     A                                      COLOR(BLU)
+     A*%%***********************************************************************
+     A*%% RAMA BANK - CARD MANAGEMENT SCREEN
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA09(09 'UPDATE')
+     A                                      INDARA
+     A          R CARDFMT
+     A                                  1 25'CARD MANAGEMENT'
+     A                                      DSPATR(HI)
+     A                                  3  5'Card Number...:'
+     A            CARDNUM       16A  B  3 22
+     A                                  4  5'Account Number:'
+     A            ACCTNUM       20A  O  4 22
+     A                                  5  5'Status........:'
+     A            STATUS         1A  O  5 22DSPATR(HI)
+     A                                  8  5'--- Card Controls (Y/N) ---'
+     A                                      COLOR(BLU)
+     A                                 10  5'International.:'
+     A            INTLFLG        1A  B 10 22
+     A                                 11  5'Online........:'
+     A            ONLNFLG        1A  B 11 22
+     A                                 12  5'Contactless...:'
+     A            CNTLFLG        1A  B 12 22
+     A                                 14  5'Daily Limit...:'
+     A            DLYLMT        15Y 2B 14 22EDTCDE(4)
+     A            ERRMSG        40A  O 17  5COLOR(RED)
+     A                                 19  5'B=Block  U=Unblock  H=Hotlist+
+     A                                       P=Reset PIN'
+     A                                      COLOR(BLU)
+     A                                 20  5'Action:'
+     A            ACTION         1A  B 20 13
+     A                                 23  2'F3=Exit   F9=Update Preferences+
+     A                                       Enter=Submit Action'
+     A                                      COLOR(BLU)
+     A*%%***********************************************************************
+     A*%% RAMA BANK - CHANGE PASSWORD
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A          R CHGPWD
+     A                                  1 25'CHANGE PASSWORD'
+     A                                      DSPATR(HI)
+     A                                  4  5'For security, password must have+
+     A                                       uppercase, lowercase, digit, spec+
+     A                                       char.'
+     A                                  6  5'Current Password.:'
+     A            CURPWD        20A  B  6 24DSPATR(ND)
+     A                                  8  5'New Password.....:'
+     A            NEWPWD        20A  B  8 24DSPATR(ND)
+     A                                 10  5'Confirm Password.:'
+     A            CNFPWD        20A  B 10 24DSPATR(ND)
+     A            PWDERR        40A  O 12  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Change Password'
+     A                                      COLOR(BLU)
+     A*%%***********************************************************************
+     A*%% RAMA BANK - DASHBOARD SCREEN WITH SUBFILE
+     A*%% Corrected/merged from DASHSCR + DASHSCR1. Uses $-prefixed field
+     A*%% names consistently (matches FUNDSCR/STMTSCR/ACCTDTLSCR convention).
+     A*%% $BALANCE changed from 15Y2 to 15P2 to match ACCTMST.BALANCE (15P2).
+     A* Edit Code  Output Result   Notes
+     A* EDTCDE(4)     12345        Zero suppressed, no commas.
+     A* EDTCDE(J)     12,345       Commas inserted.
+     A* EDTCDE(Z)     12345        Same as 4, but displays a zero value
+     A*                            as 0 instead of a blank screen.
+     A* EDWRD('  /  /  ')  12/31/99     Displays date in MM/DD/YY format.
+     A* acts as a literal mask or template, telling the system exactly where
+     A*  to place spaces, symbols, hyphens, and negative signs on the screen
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A          R DASHSFL                   SFL
+     A            $SEL           1A  B  8  2
+     A            $ACCTNUM      20A  O  8  5DSPATR(HI)
+     A            $ACCTTYPE      3A  O  8 28
+     A            $BALANCE      15  2O  8 35EDTCDE(4)
+     A            $STATUS        1A  O  8 55
+     A*
+     A          R DASHCTL                   SFLCTL(DASHSFL)
+     A                                      SFLPAG(10)
+     A                                      SFLSIZ(50)
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                  1 25'RAMA BANK - DASHBOARD'
+     A                                      DSPATR(HI)
+     A                                  2 65DATE
+     A                                      EDTWRD('  /  /  ')
+     A                                  2 74TIME
+     A                                  4  2'Customer:'
+     A            $CUSTNAME     40A  O  4 12DSPATR(HI)
+     A                                  6  2'Opt'
+     A                                  6  6'Account Number'
+     A                                  6 28'Type'
+     A                                  6 35'Balance'
+     A                                  6 55'Status'
+     A*
+     A          R DASHMENU
+     A                                      OVERLAY
+     A                                 20  2'1=Accounts 2=TRANSFERS-
+     A                                        3=Cards 4=Loans 5=Deposits'
+     A                                      COLOR(BLU)
+     A                                 21  2'6=Bill Pay    7=Profile-
+     A                                         8=BENEFIC  9=ADMIN-
+     A                                         F3=LOGOUT'
+     A                                      COLOR(BLU)
+     A            $ERRMSG       50A  O 22  2DSPATR(HI) COLOR(RED)
+     A                                 23  2'Selection:'
+     A            $MENUOPT       1A  B 23 13
+     A*%%***********************************************************************
+     A*%% RAMA BANK - FIXED DEPOSITS
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA10(10 'CLOSE FD')
+     A                                      INDARA
+     A          R FDFMT
+     A                                  1 25'FIXED DEPOSIT DETAILS'
+     A                                      DSPATR(HI)
+     A                                  3  5'FD Account Number:'
+     A            FDACCT        20A  B  3 24
+     A                                  5  5'Principal Amount.:'
+     A            PRINAMT       15Y 2O  5 24EDTCDE(4)
+     A                                  6  5'Interest Rate (%):'
+     A            INTRATE        5Y 2O  6 24EDTCDE(4)
+     A                                  7  5'Duration (Months):'
+     A            MONTHS         4Y 0O  7 24
+     A                                  8  5'Maturity Date....:'
+     A            MATDATE       10A  O  8 24
+     A  70                                  DSPATR(HI) DSPATR(BL) COLOR(RED)
+     A                                  9  5'Maturity Amount..:'
+     A            MATAMT        15Y 2O  9 24EDTCDE(4)
+     A                                 11  5'Status...........:'
+     A            STATUS        10A  O 11 24
+     A            ERRMSG        50A  O 15  5COLOR(RED)
+     A                                 23  2'F3=Exit   F10=Premature Closure'
+     A                                      COLOR(BLU)
+
+     A*%%TS  SD  20260306  110959  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - FUND TRANSFER (4 FORMATS)
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA05(05 'BACK')
+     A                                      INDARA
+     A*=======================================================================
+     A          R TRNDTL
+     A                                  1 25'FUND TRANSFER - DETAILS'
+     A                                      DSPATR(HI)
+     A                                  4  5'From Account..:'
+     A            $FROMACCT     20A  O  4 22DSPATR(HI)
+     A            $FROMBAL      15A  O  4 45
+     A                                  6  5'To Account....:'
+     A            $TOACCT       20A  B  6 22
+     A                                  8  5'To IFSC.......:'
+     A            $TOIFSC       11A  B  8 22
+     A                                 10  5'Transfer Type.:'
+     A            $TRNTYPE       4A  B 10 22
+     A                                 10 28'(NEFT/RTGS/IMPS)'
+     A                                 12  5'Amount........:'
+     A            $TRNAMT       15Y 2B 12 22
+     A            ERRMSG        50A  O 15  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Proceed'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R TRNCNF
+     A                                  1 25'FUND TRANSFER - CONFIRM'
+     A                                      DSPATR(HI)
+     A                                  4  5'From Account..:'
+     A            $CFROMACC     20A  O  4 22
+     A                                  6  5'To Account....:'
+     A            $CTOACCT      20A  O  6 22
+     A                                  7  5'Beneficiary...:'
+     A            $CBENAME      40A  O  7 22DSPATR(HI)
+     A                                  9  5'Amount........:'
+     A            $CAMT         15A  O  9 22COLOR(RED)
+     A                                 15  5'Please review details and+
+     A                                       press ENTER to confirm.'
+     A                                 23  2'F3=Exit F5=Back
+     A                                       Enter=Confirm'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R TRNOTP
+     A                                  1 25'FUND TRANSFER - OTP+
+     A                                       VERIFICATION'
+     A                                      DSPATR(HI)
+     A                                  5  5'An OTP has been sent to+
+     A                                       your registered mobile+
+     A                                       number.'
+     A                                  8  5'Enter OTP.....:'
+     A            $OTPINP        6A  B  8 22DSPATR(ND)
+     A            $OTPERR       40A  O 10  5COLOR(RED)
+     A                                 23  2'F3=Exit   F5=Back+
+     A                                       Enter=Submit'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R TRNRES
+     A*%%TS  SD  20260306  110959  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                  1 25'FUND TRANSFER - RESULT'
+     A                                      DSPATR(HI)
+     A                                  5  5'Transaction Status:'
+     A            $TRNSTAT      10   O  5 25DSPATR(HI)
+     A N90                                  COLOR(GRN)
+     A  90                                  COLOR(RED)
+     A                                  7  5'Reference No......:'
+     A            $REFNO        20A  O  7 25
+     A                                 23  2'Enter=New Transfer+
+     A                                         F3=Dashboard'
+     A                                      COLOR(BLU)
+     A*%%TS  SD  20260224  181355  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - LOAN AMORTIZATION
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA10(10 'PAY EMI')
+     A                                      INDARA
+     A          R LNSFL                     SFL
+     A            EMIID          5Y 0O  8  2EDTCDE(4)
+     A            DUEDATE       10A  O  8  9
+     A            EMIAMT        12Y 2O  8 21EDTCDE(4)
+     A            PRINAMT       12Y 2O  8 35EDTCDE(4)
+     A            INTAMT        12Y 2O  8 49EDTCDE(4)
+     A            STATUS        10A  O  8 63
+     A  90                                  COLOR(RED)
+     A*
+     A          R LNCTL                     SFLCTL(LNSFL)
+     A*%%TS  SD  20260224  181355  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                      SFLSIZ(0050)
+     A                                      SFLPAG(0010)
+     A                                  1 25'LOAN AMORTIZATION SCHEDULE'
+     A                                      DSPATR(HI)
+     A                                  3  5'Loan Account:'
+     A            LOANACCT      20A  B  3 19
+     A                                  5  2'Outstnd Bal.:'
+     A            BAL           15Y 2O  5 16EDTCDE(4)
+     A                                      COLOR(RED)
+     A                                  3 42'Rate.....:'
+     A            INTRATED       5Y 2O  3 54EDTCDE(4)
+     A                                  4 42'Term (M).:'
+     A            TERMMNTHD      4Y 0O  4 54EDTCDE(4)
+     A                                  5 42'Loan Status:'
+     A            LOANSTSD       1A  O  5 55
+     A                                  7  2'ID'
+     A                                  7  9'Due Date'
+     A                                  7 21'EMI Amt'
+     A                                  7 35'Principal'
+     A                                  7 49'Interest'
+     A                                  7 63'Status'
+     A*
+     A          R LNPAY
+     A*%%TS  SD  20260224  181355  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      OVERLAY
+     A                                 20  5'Pay EMI ID....:'
+     A            PAYID          5Y 0B 20 21
+     A            ERRMSG        40A  O 21  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Pay Specific EMI'
+     A                                      COLOR(BLU)
+     A*%%***********************************************************************
+     A*%% RAMA BANK - LOGIN SCREEN
+     A*%% Fix: removed stray record-level BLINK keyword that made the
+     A*%% entire screen blink (was almost certainly meant for ERRMSG only,
+     A*%% which already has its own DSPATR(BL) below).
+     A* *DS3 = 24 lines, 80 columns, Standard screen size
+     A* *DS4 = 27 lines, 132 columns, Extended (Larger) screen size
+     A* *DS4 used for wide reports or spreadsheets
+     A* INDARA stands for Indicator Area.must declare it in both the
+     A* -DDS and the RPG code:
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA09(09 'Reset Password')
+     A                                      INDARA
+     A          R LOGINFMT
+     A                                      OVERLAY
+     A                                  1 25'RAMA BANK - CORE BANKING SYSTEM'
+     A                                      DSPATR(HI)
+     A                                  3 35'LOGIN'
+     A                                      DSPATR(UL)
+     A                                  6 20'USER ID ......:'
+     A            USERID        20A  B  6 37
+     A                                  8 20'PASSWORD .....:'
+     A            PWDHID        20A  B  8 37DSPATR(ND)
+     A                                 12 20'Status:'
+     A            ERRMSG        50A  O 12 28DSPATR(HI) DSPATR(BL) COLOR(RED)
+     A                                 23  2'F3=Exit F9=Reset Password'
+     A                                      COLOR(BLU)
+     A*%%TS  SD  20260227  143135  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - MINISTATEMENT
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A          R MINIFMT
+     A*%%TS  SD  20260227  143135  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                  1 25'MINI STATEMENT (LAST 10 TXNS)'
+     A                                      DSPATR(HI)
+     A                                  3  5'Account:'
+     A            ACCTNUM       20A  O  3 15
+     A                                  4  2'-----------------------------------
+     A                                      ----------------------------------'
+     A                                  5  2'Date'
+     A                                  5 15'Time'
+     A                                  5 25'Type'
+     A                                  5 32'Amount'
+     A                                  5 48'Balance'
+     A* Output arrays in RPG but explicitly defined rows in DDS for performance
+     A            DT1           10A  O  7  2
+     A            TM1            8A  O  7 15
+     A            TY1            2A  O  7 25
+     A            AM1           15A  O  7 32
+     A            BL1           15Y 2O  7 48EDTCDE(4)
+     A            DT2           10A  O  8  2
+     A            TM2            8A  O  8 15
+     A            TY2            2A  O  8 25
+     A            AM2           15A  O  8 32
+     A            BL2           15Y 2O  8 48EDTCDE(4)
+     A            DT3           10A  O  9  2
+     A            TM3            8A  O  9 15
+     A            TY3            2A  O  9 25
+     A            AM3           15A  O  9 32
+     A            BL3           15Y 2O  9 48EDTCDE(4)
+     A            DT4           10A  O 10  2
+     A            TM4            8A  O 10 15
+     A            TY4            2A  O 10 25
+     A            AM4           15A  O 10 32
+     A            BL4           15Y 2O 10 48EDTCDE(4)
+     A            DT5           10A  O 11  2
+     A            TM5            8A  O 11 15
+     A            TY5            2A  O 11 25
+     A            AM5           15A  O 11 32
+     A            BL5           15Y 2O 11 48EDTCDE(4)
+     A            DT6           10A  O 12  2
+     A            TM6            8A  O 12 15
+     A            TY6            2A  O 12 25
+     A            AM6           15A  O 12 32
+     A            BL6           15Y 2O 12 48EDTCDE(4)
+     A            DT7           10A  O 13  2
+     A            TM7            8A  O 13 15
+     A            TY7            2A  O 13 25
+     A            AM7           15A  O 13 32
+     A            BL7           15Y 2O 13 48EDTCDE(4)
+     A            DT8           10A  O 14  2
+     A            TM8            8A  O 14 15
+     A            TY8            2A  O 14 25
+     A            AM8           15A  O 14 32
+     A            BL8           15Y 2O 14 48EDTCDE(4)
+     A            DT9           10A  O 15  2
+     A            TM9            8A  O 15 15
+     A            TY9            2A  O 15 25
+     A            AM9           15A  O 15 32
+     A            BL9           15Y 2O 15 48EDTCDE(4)
+     A            DT10          10A  O 16  2
+     A            TM10           8A  O 16 15
+     A            TY10           2A  O 16 25
+     A            AM10          15A  O 16 32
+     A            BL10          15Y 2O 16 48EDTCDE(4)
+     A                                 23  2'F3=Exit'
+     A                                      COLOR(BLU)
+     A*%%***********************************************************************
+     A*%% RAMA BANK - OTP VERIFICATION POPUP
+     A*%% New screen for OTPVERPGM, which previously had no display file at
+     A*%% all and unconditionally returned "valid" without checking anything.
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'CANCEL')
+     A                                      INDARA
+     A          R OTPFMT
+     A                                      WINDOW(8 6 8 70)
+     A                                  1  3'OTP VERIFICATION'
+     A                                      DSPATR(HI)
+     A                                  3  3'An OTP has been sent to your'+
+     A                                       ' registered mobile number.'
+     A                                  5  3'Enter OTP:'
+     A            OTPINP         6A  B  5 15DSPATR(ND)
+     A            OTPERR        40A  O  6  3COLOR(RED)
+     A                                  7  3'F3=Cancel   Enter=Submit'
+     A                                      COLOR(BLU)
+     A*%%***********************************************************************
+     A*%% RAMA BANK - PROFILE AND CHANGE PASSWORD
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      INDARA
+     A*=======================================================================
+     A          R PROFFMT
+     A                                  1 25'MY PROFILE & KYC'
+     A                                      DSPATR(HI)
+     A                                  4  5'Customer ID:'
+     A            CUSTID        20A  O  4 18
+     A                                  5  5'Name.......:'
+     A            NAME          40A  O  5 18
+     A                                  7  5'PAN........:'
+     A            PAN           10A  O  7 18
+     A                                  8  5'Aadhaar....:'
+     A            AADHAAR       12A  O  8 18
+     A                                 10  5'Mobile.....:'
+     A            MOBILE        15A  O 10 18
+     A                                 11  5'Email......:'
+     A            EMAIL         50A  O 11 18
+     A                                 13  5'Address....:'
+     A            ADDRESS      100A  O 13 18
+     A                                 16  5'Update Request Field:'
+     A            UPDFLD        10A  B 16 27
+     A                                 17  5'New Value...........:'
+     A            UPDVAL        50A  B 17 27
+     A            ERRMSG        40A  O 19  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Request Value+
+     A                                       Update'
+     A                                      COLOR(BLU)
+     A*=======================================================================
+     A          R CHGPWD
+     A                                  1 25'CHANGE PASSWORD'
+     A                                      DSPATR(HI)
+     A                                  4  5'For security, password must have+
+     A                                       uppercase, lowercase, digit, spec+
+     A                                       char.'
+     A                                  6  5'Current Password.:'
+     A            CURPWD        20A  B  6 24DSPATR(ND)
+     A                                  8  5'New Password.....:'
+     A            NEWPWD        20A  B  8 24DSPATR(ND)
+     A                                 10  5'Confirm Password.:'
+     A            CNFPWD        20A  B 10 24DSPATR(ND)
+     A            PWDERR        40A  O 12  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Change Password'
+     A                                      COLOR(BLU)
+
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      INDARA
+     A          R RESETFMT
+     A                                      CA03(03 'Exit')
+     A                                  1 25'RAMA BANK - RESET PASSWORD'
+     A                                      DSPATR(HI)
+     A                                  4  5'User ID . . . . :'
+     A            USERID        20A  B  4 25
+     A                                  6  5'New Password  . :'
+     A            NEWPWD        20A  B  6 25DSPATR(ND)
+     A                                  8  5'Confirm Password:'
+     A            CNFPWD        20A  B  8 25DSPATR(ND)
+     A            ERRMSG        50A  O 20  5DSPATR(HI) COLOR(RED)
+     A                                 23  5'F3=Cancel and Return to Login'
+     A*%%TS  SD  20260705  191809  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - STATEMENT SCREEN WITH COLOR CODING
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA06(06 'PRINT')
+     A                                      CA07(07 'PAGE UP')
+     A                                      CA08(08 'PAGE DOWN')
+     A                                      INDARA
+     A          R STMTSFL                   SFL
+     A            $TXNDATE      10A  O  8  2
+     A            $TXNTIME       8A  O  8 13
+     A            $REFNUM       20A  O  8 22
+     A            $TYPE          2A  O  8 43
+     A            $AMOUNT       15A  O  8 47
+     A  50                                  COLOR(RED)
+     A  51                                  COLOR(GRN)
+     A            $BALAFTER     13Y 2O  8 64EDTCDE(4)
+     A*
+     A          R STMTCTL                   SFLCTL(STMTSFL)
+     A*%%TS  SD  20260705  191809  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                      SFLSIZ(0100)
+     A                                      SFLPAG(0010)
+     A                                  1 25'ACCOUNT STATEMENT'
+     A                                      DSPATR(HI)
+     A                                  3  2'Account:'
+     A            $ACCTNUM      20A  O  3 12
+     A                                  3 40'From Date:'
+     A            $FRMDATE      10A  B  3 51
+     A                                  4 40'To Date..:'
+     A            $TODATE       10A  B  4 51
+     A                                  5  2'Filter Type (DR/CR/ALL):'
+     A            $FLTTYPE       3A  B  5 27
+     A            $ERRMSG       40A  O  5 40COLOR(RED)
+     A                                  6  2'-----------------------------------
+     A                                      -'
+     A                                  7  2'Date'
+     A                                  7 13'Time'
+     A                                  7 22'Reference'
+     A                                  7 42'Cr/Dr'
+     A                                  7 51'Amount'
+     A                                  7 69'Balance'
+     A*
+     A          R STMTFTR
+     A*%%TS  SD  20260705  191809  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      OVERLAY
+     A                                 23  2'F3=Exit   F6=Print Statement  F7=Pag-
+     A                                      eUp   F8=PageDown'
+     A                                      COLOR(BLU)
+

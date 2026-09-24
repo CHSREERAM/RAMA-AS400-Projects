@@ -1,0 +1,44 @@
+     A**************************************************************
+     A* PPQCPPD - Critical Process Parameters subfile (child of header)
+     A**************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      PRINT
+     A                                      CA03(03 'Exit')
+     A                                      CA12(12 'Cancel')
+     A                                      CF06(06 'Add')
+     A                                      CF18(18 'Statistics')
+     A                                      INDARA
+     A          R SFL1                      SFL
+     A            $C_CPPSEQ      5S 0H
+     A            $C_PARAM      25A  B  4  2
+     A            $C_LOLIM      15S 4B  4 28
+     A            $C_TARGT      15S 4B  4 45
+     A            $C_UPLIM      15S 4B  4 62
+     A            $C_CRIT        1A  B  5  2
+     A            $SFLOPT        1A  B  5 78
+     A**************************************************************
+     A          R SFL1CTL                   SFLCTL(SFL1)
+     A                                      OVERLAY
+     A                                      SFLSIZ(0030)
+     A                                      SFLPAG(0008)
+     A N31                                  SFLDSP
+     A N31                                  SFLDSPCTL
+     A N31                                  SFLCLR
+     A  31                                  SFLINZ
+     A            $RRN1          4S 0H      SFLRCDNBR
+     A                                  1  2'Critical Process Parameters'
+     A                                      DSPATR(HI)
+     A                                  1 65'PPQCPPD'
+     A                                  2  2'Protocol:'
+     A            $H_PROTNO     20A  O  2 12
+     A                                  3  2'Parameter'
+     A                                  3 34'Lower'
+     A                                  3 50'Target'
+     A                                  3 66'Upper'
+     A**************************************************************
+     A          R SFL1FTR
+     A                                      OVERLAY
+     A                                 21  2'2=Change  4=Delete'
+     A                                      COLOR(BLU)
+     A                                 22  2'F3=Exit  F6=Add  F18=Statistics'
+     A                                      COLOR(BLU)

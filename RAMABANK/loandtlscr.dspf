@@ -1,0 +1,55 @@
+     A*%%TS  SD  20260224  181355  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - LOAN AMORTIZATION
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA10(10 'PAY EMI')
+     A                                      INDARA
+     A          R LNSFL                     SFL
+     A            EMIID          5Y 0O  8  2EDTCDE(4)
+     A            DUEDATE       10A  O  8  9
+     A            EMIAMT        12Y 2O  8 21EDTCDE(4)
+     A            PRINAMT       12Y 2O  8 35EDTCDE(4)
+     A            INTAMT        12Y 2O  8 49EDTCDE(4)
+     A            STATUS        10A  O  8 63
+     A  90                                  COLOR(RED)
+     A*
+     A          R LNCTL                     SFLCTL(LNSFL)
+     A*%%TS  SD  20260224  181355  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                      SFLSIZ(0050)
+     A                                      SFLPAG(0010)
+     A                                  1 25'LOAN AMORTIZATION SCHEDULE'
+     A                                      DSPATR(HI)
+     A                                  3  5'Loan Account:'
+     A            LOANACCT      20A  B  3 19
+     A                                  5  2'Outstnd Bal.:'
+     A            BAL           15Y 2O  5 16EDTCDE(4)
+     A                                      COLOR(RED)
+     A                                  3 42'Rate.....:'
+     A            INTRATED       5Y 2O  3 54EDTCDE(4)
+     A                                  4 42'Term (M).:'
+     A            TERMMNTHD      4Y 0O  4 54EDTCDE(4)
+     A                                  5 42'Loan Status:'
+     A            LOANSTSD       1A  O  5 55
+     A                                  7  2'ID'
+     A                                  7  9'Due Date'
+     A                                  7 21'EMI Amt'
+     A                                  7 35'Principal'
+     A                                  7 49'Interest'
+     A                                  7 63'Status'
+     A*
+     A          R LNPAY
+     A*%%TS  SD  20260224  181355  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      OVERLAY
+     A                                 20  5'Pay EMI ID....:'
+     A            PAYID          5Y 0B 20 21
+     A            ERRMSG        40A  O 21  5COLOR(RED)
+     A                                 23  2'F3=Exit   Enter=Pay Specific EMI'
+     A                                      COLOR(BLU)

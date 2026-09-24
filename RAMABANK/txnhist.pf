@@ -1,0 +1,19 @@
+     A* ==========================================================
+     A* RAMA BANK - Transaction History File
+     A* B = Binary, L = Date, T = Time, P = Packed Decimal, A = Alphanumeric
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R TXNHREC
+     A            TXNID          9B 0       COLHDG('Transaction ID')
+     A            TXNDATE         L         COLHDG('Transaction Date')
+     A            TXNTIME         T         COLHDG('Transaction Time')
+     A            ACCTNUM       20A         COLHDG('Account Number')
+     A            TXNTYPE        2A         COLHDG('Transaction Type' +
+     A                                              '(CR/DR)')
+     A            AMOUNT        15P 2       COLHDG('Transaction' +
+     A                                             ' Amount')
+     A            REFNUM        50A         COLHDG('Reference Number')
+     A            BALAFTER      15P 2       COLHDG('Balance After')
+     A            STATUS         1A         COLHDG('Status (S/F)')
+     A                                      DFT('S')
+     A          K TXNID

@@ -1,0 +1,62 @@
+     A*%%TS  SD  20260209  133119  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A                                      DSPSIZ(24 80 *DS3)
+     A          R EMPDET                    SFL
+     A*%%TS  SD  20260209  111908  SREERAMC    REL-V7R5M0  5770-WDS
+     A            $OPTED         2  0B 12  3
+     A            $EMPIDED       4  0O 12  8
+     A            $EMPNAMED     20   O 12 14
+     A            $EMPTEAMED    10   O 12 37
+     A            $EMPDESED     20   O 12 50
+     A          R EMPDETCTL                 SFLCTL(EMPDET)
+     A*%%TS  SD  20260209  133119  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      SFLSIZ(9999)
+     A                                      SFLPAG(0008)
+     A                                      CF03(03 'Exit')
+     A                                      CF12(12 'Cancel')
+     A                                      OVERLAY
+     A  25                                  SFLDSP
+     A  26                                  SFLDSPCTL
+     A  27                                  SFLCLR
+     A  28                                  SFLEND(*MORE)
+     A                                  1  3'USER:'
+     A                                      COLOR(WHT)
+     A            $MGRNAM       15A  O  1  9
+     A                                  1 25'Employee Leave Management System'
+     A                                      DSPATR(RI)
+     A                                      COLOR(YLW)
+     A                                  2 33'Employee Details'
+     A                                      COLOR(YLW)
+     A                                  1 63'DATE:'
+     A                                      COLOR(WHT)
+     A                                  1 69DATE
+     A                                      EDTCDE(Y)
+     A                                  2  3'TEAM:'
+     A                                      COLOR(WHT)
+     A                                  2 63'TIME:'
+     A                                      COLOR(WHT)
+     A                                  2 69TIME
+     A                                  6  3'Type option, press Enter.'
+     A                                      COLOR(BLU)
+     A                                  8  5'5=View Details'
+     A                                      COLOR(BLU)
+     A                                 11  3'OPT'
+     A                                      COLOR(WHT)
+     A                                 11  9'ID'
+     A                                      COLOR(WHT)
+     A                                 11 19'Name'
+     A                                      COLOR(WHT)
+     A                                 11 39'Team'
+     A                                      COLOR(WHT)
+     A                                 11 54'Designation'
+     A                                      COLOR(WHT)
+     A            $MGRTEAM      10A  O  2  9
+     A          R FOOTER
+     A*%%TS  SD  20260209  132928  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      OVERLAY
+     A                                 23  3'F3=Exit'
+     A                                      COLOR(BLU)
+     A                                 23 13'F5=Refresh'
+     A                                      COLOR(BLU)
+     A                                 23 27'F12=Cancel'
+     A                                      COLOR(BLU)

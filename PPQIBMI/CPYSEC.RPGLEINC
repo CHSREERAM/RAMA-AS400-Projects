@@ -1,0 +1,19 @@
+**FREE
+      //---------------------------------------------------------------
+      // CPYSEC - Session / current-user context, populated at login
+      //---------------------------------------------------------------
+      dcl-ds SessionInfo_t qualified template;
+        UserId      varchar(10);
+        FullName    varchar(60);
+        DeptCd      char(10);
+        RoleList    varchar(200);   // comma-separated ROLE_CD list
+        LoginTs     timestamp;
+        DeviceName  char(10);
+      end-ds;
+
+      // SECSRV owns the EXPORT'd instance (declared directly in SECSRV.sqlrpgle);
+      // every other module that /copy's this book gets an IMPORT'd reference.
+      // Named sql_gSession because SECSRV also uses it as an embedded-SQL
+      // host variable (SELECT/INSERT ... INTO :sql_gSession.xxx).
+      dcl-ds sql_gSession likeds(SessionInfo_t) import;
+

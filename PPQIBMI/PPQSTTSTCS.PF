@@ -1,0 +1,34 @@
+     A***************************************************************
+     A* PPQSTTSTCS - DDS Physical File for PPQ_STATISTICS
+     A* Module 21 - Statistical Analysis (Cp/Cpk/Pp/Ppk)
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQSTTSTCR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            STAT_SEQ       4B 0
+     A            CPP_SEQ        4B 0
+     A                                      ALWNULL
+     A            CQA_SEQ        4B 0
+     A                                      ALWNULL
+     A            SAMPLESIZE     9B 0
+     A                                      ALWNULL
+     A                                      ALIAS(SAMPLE_SIZE)
+     A            MEAN_VAL      15P 5
+     A                                      ALWNULL
+     A            STD_DEV       15P 5
+     A                                      ALWNULL
+     A            RANGE_VAL     15P 5
+     A                                      ALWNULL
+     A            CP             9P 4
+     A                                      ALWNULL
+     A            CPK            9P 4
+     A                                      ALWNULL
+     A            PP             9P 4
+     A                                      ALWNULL
+     A            PPK            9P 4
+     A                                      ALWNULL
+     A            CALC_TS         Z
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K STAT_SEQ

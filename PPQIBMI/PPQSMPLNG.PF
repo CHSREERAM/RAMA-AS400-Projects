@@ -1,0 +1,24 @@
+     A***************************************************************
+     A* PPQSMPLNG  - DDS Physical File for PPQ_SAMPLING
+     A* Module 18 - Sampling Plan
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQSMPLNGR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            SAMPLE_SEQ     4B 0
+     A            STAGE         60A
+     A                                      VARLEN
+     A            LOCATION      60A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            SAMPLE_QTY     9P 2
+     A                                      ALWNULL
+     A            FREQUENCY     40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            METHOD_SEQ     4B 0
+     A                                      ALWNULL
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K SAMPLE_SEQ

@@ -1,0 +1,9 @@
+     A* ==========================================================
+     A* RAMA BANK - Biller Master File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R BILLMREC
+     A            BILLERID      20A         COLHDG('Biller ID')
+     A            BILLERNAME   100A         COLHDG('Biller Name')
+     A            CATEGORY      50A         COLHDG('Category')
+     A          K BILLERID

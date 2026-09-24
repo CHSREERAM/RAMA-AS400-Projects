@@ -1,0 +1,11 @@
+     A* ==========================================================
+     A* RAMA BANK - Nominee Master File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R NOMMREC
+     A            NOMID          9B 0       COLHDG('Nominee ID')
+     A            ACCTNUM       20A         COLHDG('Account Number')
+     A            NOMNAME      100A         COLHDG('Nominee Name')
+     A            RELATION      50A         COLHDG('Relationship')
+     A            DOB             L         COLHDG('Date of Birth')
+     A          K NOMID

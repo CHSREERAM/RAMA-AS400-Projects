@@ -1,0 +1,220 @@
+PGM
+
+             /* Monitor for errors (e.g. if constraint already exists) to prevent crashing */
+             MONMSG     MSGID(CPF0000)
+
+             ADDPFCST   FILE(SREERAMC1/SCRLPRM) TYPE(*REFCST) +
+                          CST(FKSCRLPR2) KEY(USER_ID) +
+                          PRNFILE(SEC_USER) PRNKEY(USER_ID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/SCRLPRM) TYPE(*REFCST) +
+                          CST(FKSCRLPR2) KEY(ROLE_CD) +
+                          PRNFILE(SEC_ROLE) PRNKEY(ROLE_CD) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/SCSGNTR) TYPE(*REFCST) +
+                          CST(FKSCSGNT1) KEY(USER_ID) +
+                          PRNFILE(SEC_USER) PRNKEY(USER_ID)
+
+             ADDPFCST   FILE(SREERAMC1/MDVLDTNTM) TYPE(*REFCST) +
+                          CST(FKMDVLDT1) KEY(USER_ID) +
+                          PRNFILE(SEC_USER) PRNKEY(USER_ID)
+
+             ADDPFCST   FILE(SREERAMC1/MDAPPROVER) TYPE(*REFCST) +
+                          CST(FKMDAPPR1) KEY(USER_ID) +
+                          PRNFILE(SEC_USER) PRNKEY(USER_ID)
+
+             ADDPFCST   FILE(SREERAMC1/MDAPPROVER) TYPE(*REFCST) +
+                          CST(FKMDAPPR2) KEY(ROLE_CD) +
+                          PRNFILE(SEC_ROLE) PRNKEY(ROLE_CD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_HEADER) TYPE(*REFCST) +
+                          CST(FKPPQ_HE1) KEY(PRODUCT_CD) +
+                          PRNFILE(MD_PRODUCT) PRNKEY(PRODUCT_CD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQBJCTV) TYPE(*REFCST) +
+                          CST(FKPPQBJC1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_TEAM) TYPE(*REFCST) +
+                          CST(FKPPQ_TE1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_TEAM) TYPE(*REFCST) +
+                          CST(FKPPQ_TE2) KEY(USER_ID) +
+                          PRNFILE(SEC_USER) PRNKEY(USER_ID)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_TEAM) TYPE(*REFCST) +
+                          CST(FKPPQ_TE3) KEY(DEPT_CD) +
+                          PRNFILE(MDDPRTMNT) PRNKEY(DEPT_CD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_TEAM) TYPE(*REFCST) +
+                          CST(FKPPQ_TE4) KEY(ESIG_ID) +
+                          PRNFILE(SCSGNTR) PRNKEY(ESIG_ID)
+
+             ADDPFCST   FILE(SREERAMC1/PPQPRODUCT) TYPE(*REFCST) +
+                          CST(FKPPQPRO1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQPRODUCT) TYPE(*REFCST) +
+                          CST(FKPPQPRO2) KEY(PRODUCT_CD) +
+                          PRNFILE(MD_PRODUCT) PRNKEY(PRODUCT_CD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQFORMULA) TYPE(*REFCST) +
+                          CST(FKPPQFOR1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQFORMULA) TYPE(*REFCST) +
+                          CST(FKPPQFOR2) KEY(MATERIALCD) +
+                          PRNFILE(MDMATERIAL) PRNKEY(MATERIALCD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQQPMNT) TYPE(*REFCST) +
+                          CST(FKPPQQPM1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQQPMNT) TYPE(*REFCST) +
+                          CST(FKPPQQPM2) KEY(EQUIP_CD) +
+                          PRNFILE(MDQPMNT) PRNKEY(EQUIP_CD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQTLTS) TYPE(*REFCST) +
+                          CST(FKPPQTLT1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQTLTS) TYPE(*REFCST) +
+                          CST(FKPPQTLT2) KEY(UTILITY_CD) +
+                          PRNFILE(MD_UTILITY) PRNKEY(UTILITY_CD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQPVNDR) TYPE(*REFCST) +
+                          CST(FKPPQPVN1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQPVNDR) TYPE(*REFCST) +
+                          CST(FKPPQPVN2) KEY(VENDOR_CD) +
+                          PRNFILE(MD_VENDOR) PRNKEY(VENDOR_CD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_METHOD) TYPE(*REFCST) +
+                          CST(FKPPQ_ME1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_METHOD) TYPE(*REFCST) +
+                          CST(FKPPQ_ME2) KEY(METHOD_CD) +
+                          PRNFILE(MDNLYTCLMT) PRNKEY(METHOD_CD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQPROCESS) TYPE(*REFCST) +
+                          CST(FKPPQPRO1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQPROCESS) TYPE(*REFCST) +
+                          CST(FKPPQPRO2) KEY(PROTOCOLID EQUIP_SEQ) +
+                          PRNFILE(PPQQPMNT) PRNKEY(PROTOCOLID EQUIP_SEQ)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_CPP) TYPE(*REFCST) +
+                          CST(FKPPQ_CP1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_CPP) TYPE(*REFCST) +
+                          CST(FKPPQ_CP2) KEY(PROTOCOLID STEP_NO) +
+                          PRNFILE(PPQPROCESS) PRNKEY(PROTOCOLID STEP_NO)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_CQA) TYPE(*REFCST) +
+                          CST(FKPPQ_CQ1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_CQA) TYPE(*REFCST) +
+                          CST(FKPPQ_CQ2) KEY(PROTOCOLID METHOD_SEQ) +
+                          PRNFILE(PPQ_METHOD) PRNKEY(PROTOCOLID METHOD_SEQ)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_RISK) TYPE(*REFCST) +
+                          CST(FKPPQ_RI1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_RISK) TYPE(*REFCST) +
+                          CST(FKPPQ_RI2) KEY(PROTOCOLID CPP_SEQ) +
+                          PRNFILE(PPQ_CPP) PRNKEY(PROTOCOLID CPP_SEQ)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_PLAN) TYPE(*REFCST) +
+                          CST(FKPPQ_PL1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_PLAN) TYPE(*REFCST) +
+                          CST(FKPPQ_PL2) KEY(PROTOCOLID CQA_SEQ) +
+                          PRNFILE(PPQ_CQA) PRNKEY(PROTOCOLID CQA_SEQ)
+
+             ADDPFCST   FILE(SREERAMC1/PPQNVRNMNT) TYPE(*REFCST) +
+                          CST(FKPPQNVR1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQNVRNMNT) TYPE(*REFCST) +
+                          CST(FKPPQNVR2) KEY(ENV_CD) +
+                          PRNFILE(MDNVCNDTN) PRNKEY(ENV_CD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQSMPLNG) TYPE(*REFCST) +
+                          CST(FKPPQSMP1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQSMPLNG) TYPE(*REFCST) +
+                          CST(FKPPQSMP2) KEY(PROTOCOLID METHOD_SEQ) +
+                          PRNFILE(PPQ_METHOD) PRNKEY(PROTOCOLID METHOD_SEQ)
+
+             ADDPFCST   FILE(SREERAMC1/PPQ_YIELD) TYPE(*REFCST) +
+                          CST(FKPPQ_YI1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQDVTN) TYPE(*REFCST) +
+                          CST(FKPPQDVT1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQSTTSTCS) TYPE(*REFCST) +
+                          CST(FKPPQSTT1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQSTTSTCS) TYPE(*REFCST) +
+                          CST(FKPPQSTT2) KEY(PROTOCOLID CPP_SEQ) +
+                          PRNFILE(PPQ_CPP) PRNKEY(PROTOCOLID CPP_SEQ)
+
+             ADDPFCST   FILE(SREERAMC1/PPQSTTSTCS) TYPE(*REFCST) +
+                          CST(FKPPQSTT3) KEY(PROTOCOLID CQA_SEQ) +
+                          PRNFILE(PPQ_CQA) PRNKEY(PROTOCOLID CQA_SEQ)
+
+             ADDPFCST   FILE(SREERAMC1/PPQTTCHMNT) TYPE(*REFCST) +
+                          CST(FKPPQTTC1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQPPRVL) TYPE(*REFCST) +
+                          CST(FKPPQPPR1) KEY(PROTOCOLID) +
+                          PRNFILE(PPQ_HEADER) PRNKEY(PROTOCOLID) +
+                          DLTRULE(*CASCADE)
+
+             ADDPFCST   FILE(SREERAMC1/PPQPPRVL) TYPE(*REFCST) +
+                          CST(FKPPQPPR2) KEY(ROLE_CD) +
+                          PRNFILE(SEC_ROLE) PRNKEY(ROLE_CD)
+
+             ADDPFCST   FILE(SREERAMC1/PPQPPRVL) TYPE(*REFCST) +
+                          CST(FKPPQPPR3) KEY(USER_ID) +
+                          PRNFILE(SEC_USER) PRNKEY(USER_ID)
+
+             ADDPFCST   FILE(SREERAMC1/PPQPPRVL) TYPE(*REFCST) +
+                          CST(FKPPQPPR4) KEY(ESIG_ID) +
+                          PRNFILE(SCSGNTR) PRNKEY(ESIG_ID)
+
+             ENDPGM

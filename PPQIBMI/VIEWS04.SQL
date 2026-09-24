@@ -1,0 +1,54 @@
+------------------------------------------------------------------
+-- 04_views.sql
+------------------------------------------------------------------
+SET SCHEMA SREERAMC1;
+
+-- Subfile list view for the Protocol Search / Main Menu subfile
+CREATE VIEW V_PPQ_HEADER_LIST AS
+  SELECT H.PROTOCOL_ID, H.PROTOCOL_NO, H.REVISION_NO, H.VERSION_NO,
+         H.PRODUCT_NAME, H.MARKET, H.BATCH_SIZE, H.VALIDATION_TYPE,
+         H.STATUS, H.CREATED_BY, H.CREATED_TS,
+         (SELECT COUNT(*) FROM PPQ_DEVIATION D WHERE D.PROTOCOL_ID = H.PROTOCOL_ID AND D.APPR_STATUS
+         (SELECT COUNT(*) FROM PPQ_APPROVAL A WHERE A.PROTOCOL_ID = H.PROTOCOL_ID AND A.APPR_STATUS
+  FROM PPQ_HEADER H;
+
+-- Execution team roster with resolved names, for the Team subfile
+CREATE VIEW V_PPQ_TEAM_LIST AS
+  SELECT T.PROTOCOL_ID, T.MEMBER_SEQ, T.USER_ID, U.FULL_NAME, T.DESIGNATION,
+         T.DEPT_CD, D.DEPT_NAME, T.RESPONSIBILITY, T.APPR_STATUS
+  FROM PPQ_TEAM T
+  JOIN SEC_USER U ON U.USER_ID = T.USER_ID
+  LEFT JOIN MD_DEPARTMENT D ON D.DEPT_CD = T.DEPT_CD;
+
+-- CPP + latest capability statistics, for the CPP subfile / CPP Report
+CREATE VIEW V_PPQ_CPP_STATS AS
+  SELECT C.PROTOCOL_ID, C.CPP_SEQ, C.PARAM_NAME, C.LOWER_LIMIT, C.TARGET, C.UPPER_LIMIT,
+         C.CRITICALITY, S.CP, S.CPK, S.PP, S.PPK, S.MEAN_VAL, S.STD_DEV
+  FROM PPQ_CPP C
+  LEFT JOIN PPQ_STATISTICS S ON S.PROTOCOL_ID = C.PROTOCOL_ID AND S.CPP_SEQ = C.CPP_SEQ;
+
+-- Module 22: Summary - assembled narrative, not a stored table
+CREATE VIEW V_PPQ_SUMMARY AS
+  SELECT H.PROTOCOL_ID, H.PROTOCOL_NO,
+    'Protocol ' || TRIM(H.PROTOCOL_NO) || ' for ' || TRIM(H.PRODUCT_NAME) ||
+    ' evaluated ' || CAST((SELECT COUNT(*) FROM PPQ_CPP P WHERE P.PROTOCOL_ID = H.PROTOCOL_ID) AS VA
+    ' critical process parameter(s) and ' ||
+    CAST((SELECT COUNT(*) FROM PPQ_CQA Q WHERE Q.PROTOCOL_ID = H.PROTOCOL_ID) AS VARCHAR(10)) ||
+    ' critical quality attribute(s) across ' ||
+    CAST((SELECT COUNT(*) FROM PPQ_YIELD Y WHERE Y.PROTOCOL_ID = H.PROTOCOL_ID) AS VARCHAR(10)) ||
+    ' yield stage(s), with ' ||
+    CAST((SELECT COUNT(*) FROM PPQ_DEVIATION D WHERE D.PROTOCOL_ID = H.PROTOCOL_ID) AS VARCHAR(10))
+    ' deviation(s) recorded.' AS SUMMARY_TXT
+  FROM PPQ_HEADER H;
+
+-- Module 23: Conclusion - pass/fail roll-up from CPP capability + open deviations
+CREATE VIEW V_PPQ_CONCLUSION AS
+  SELECT H.PROTOCOL_ID, H.PROTOCOL_NO,
+    CASE
+      WHEN (SELECT COUNT(*) FROM PPQ_DEVIATION D WHERE D.PROTOCOL_ID = H.PROTOCOL_ID AND D.APPR_STAT
+        THEN 'NOT CONCLUDED - open deviations pending closure.'
+      WHEN (SELECT COUNT(*) FROM PPQ_STATISTICS S WHERE S.PROTOCOL_ID = H.PROTOCOL_ID AND S.CPK < 1.
+        THEN 'CONCLUDED WITH OBSERVATIONS - one or more parameters below Cpk 1.33 target.'
+      ELSE 'PROCESS DEMONSTRATED TO BE CAPABLE AND REPRODUCIBLE - all acceptance criteria met.'
+    END AS CONCLUSION_TXT
+  FROM PPQ_HEADER H;

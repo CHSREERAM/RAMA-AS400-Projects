@@ -1,0 +1,12 @@
+     A* ==========================================================
+     A* RAMA BANK - Card Limit File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R CRDLMREC
+     A            CARDNUM       16A         COLHDG('Card Number')
+     A            DAILYLIMIT    15P 2       COLHDG('Daily Limit')
+     A                                      DFT(0.00)
+     A            USEDLIMIT     15P 2       COLHDG('Used Limit')
+     A                                      DFT(0.00)
+     A            LASTRESET       L         COLHDG('Last Reset Date')
+     A          K CARDNUM

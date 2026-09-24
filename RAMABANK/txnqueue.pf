@@ -1,0 +1,15 @@
+     A* ==========================================================
+     A* RAMA BANK - Transaction Queue File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R TXNQREC
+     A            QID            9B 0       COLHDG('Queue ID')
+     A            FROMACCT      20A         COLHDG('From Account')
+     A            TOACCT        20A         COLHDG('To Account')
+     A            TOIFSC        11A         COLHDG('To IFSC')
+     A            AMOUNT        15P 2       COLHDG('Amount')
+     A            QTIMESTAMP      Z         COLHDG('Queue Timestamp')
+     A            STATUS         1A         COLHDG('Status (P/F)')
+     A                                      DFT('P')
+     A            NWTYPE        10A         COLHDG('Network Type')
+     A          K QID

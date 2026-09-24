@@ -1,0 +1,36 @@
+     A***************************************************************
+     A* PPQPRODUCT - DDS Physical File for PPQ_PRODUCT
+     A* Module 6 - Product Information
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQPRODUCR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            PRODUCT_CD    15A
+     A            GNRCNM        80A
+     A                                      VARLEN
+     A                                      ALIAS(GENERIC_NAME)
+     A            BRAND_NAME    80A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            STRENGTH      40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A            DOSAGEFORM    40A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(DOSAGE_FORM)
+     A            BATCH_SIZE    15P 3
+     A                                      ALWNULL
+     A            SHLFLFMNTH     4B 0
+     A                                      ALWNULL
+     A                                      ALIAS(SHELF_LIFE_MONTHS)
+     A            STRGCND       60A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(STORAGE_COND)
+     A            MFG_SITE      60A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A***************************************************************
+     A          K PROTOCOLID

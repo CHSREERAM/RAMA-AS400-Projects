@@ -1,0 +1,22 @@
+     A* ==========================================================
+     A* RAMA BANK - Card Master File
+     A* ==========================================================
+     A                                      UNIQUE
+     A          R CARDMREC
+     A            CARDNUM       16A         COLHDG('Card Number')
+     A            CUSTID        20A         COLHDG('Customer ID')
+     A            ACCTNUM       20A         COLHDG('Account Number')
+     A            CARDTYPE      10A         COLHDG('Card Type')
+     A            NETWORK       20A         COLHDG('Network')
+     A            EXPIRY         5A         COLHDG('Expiry MM/YY')
+     A            STATUS         1A         COLHDG('Status (A/B/H)')
+     A                                      DFT('A')
+     A            PINHASH       64A         COLHDG('PIN Hash')
+     A            INTL_FLAG      1A         COLHDG('Intl Flag (Y/N)')
+     A                                      DFT('N')
+     A            ONLN_FLAG      1A         COLHDG('Online Flag (Y/N)')
+     A                                      DFT('N')
+     A            CNTL_FLAG      1A         COLHDG('Contactless Flag' +
+     A                                              '(Y/N)')
+     A                                      DFT('N')
+     A          K CARDNUM

@@ -1,0 +1,14 @@
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      INDARA
+     A          R RESETFMT
+     A                                      CA03(03 'Exit')
+     A                                  1 25'RAMA BANK - RESET PASSWORD'
+     A                                      DSPATR(HI)
+     A                                  4  5'User ID . . . . :'
+     A            USERID        20A  B  4 25
+     A                                  6  5'New Password  . :'
+     A            NEWPWD        20A  B  6 25DSPATR(ND)
+     A                                  8  5'Confirm Password:'
+     A            CNFPWD        20A  B  8 25DSPATR(ND)
+     A            ERRMSG        50A  O 20  5DSPATR(HI) COLOR(RED)
+     A                                 23  5'F3=Cancel and Return to Login'

@@ -1,0 +1,23 @@
+     A***************************************************************
+     A* PPQ_METHOD - DDS Physical File for PPQ_METHOD
+     A* Module 11 - Analytical Method Validation
+     A***************************************************************
+     A                                      UNIQUE
+     A          R PPQ_METHOR
+     A            PROTOCOLID    18P 0
+     A                                      ALIAS(PROTOCOL_ID)
+     A            METHOD_SEQ     4B 0
+     A            METHOD_CD     15A
+     A            MTHDVRSN      10A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(METHOD_VERSION)
+     A            VLDTDND        1A
+     A                                      ALIAS(VALIDATED_IND)
+     A            TRNSFRSTTS    20A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(TRANSFER_STATUS)
+     A***************************************************************
+     A          K PROTOCOLID
+     A          K METHOD_SEQ

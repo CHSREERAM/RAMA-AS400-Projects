@@ -1,0 +1,56 @@
+     A*%%TS  SD  20260705  191809  SREERAMC    REL-V7R5M0  5770-WDS
+     A*%%EC
+     A*%%***********************************************************************
+     A*%% RAMA BANK - STATEMENT SCREEN WITH COLOR CODING
+     A*%%***********************************************************************
+     A                                      DSPSIZ(24 80 *DS3)
+     A                                      CA03(03 'EXIT')
+     A                                      CA06(06 'PRINT')
+     A                                      CA07(07 'PAGE UP')
+     A                                      CA08(08 'PAGE DOWN')
+     A                                      INDARA
+     A          R STMTSFL                   SFL
+     A            $TXNDATE      10A  O  8  2
+     A            $TXNTIME       8A  O  8 13
+     A            $REFNUM       20A  O  8 22
+     A            $TYPE          2A  O  8 43
+     A            $AMOUNT       15A  O  8 47
+     A  50                                  COLOR(RED)
+     A  51                                  COLOR(GRN)
+     A            $BALAFTER     13Y 2O  8 64EDTCDE(4)
+     A*
+     A          R STMTCTL                   SFLCTL(STMTSFL)
+     A*%%TS  SD  20260705  191809  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      OVERLAY
+     A  40                                  SFLDSP
+     A  41                                  SFLDSPCTL
+     A  42                                  SFLCLR
+     A  43                                  SFLEND(*MORE)
+     A                                      SFLSIZ(0100)
+     A                                      SFLPAG(0010)
+     A                                  1 25'ACCOUNT STATEMENT'
+     A                                      DSPATR(HI)
+     A                                  3  2'Account:'
+     A            $ACCTNUM      20A  O  3 12
+     A                                  3 40'From Date:'
+     A            $FRMDATE      10A  B  3 51
+     A                                  4 40'To Date..:'
+     A            $TODATE       10A  B  4 51
+     A                                  5  2'Filter Type (DR/CR/ALL):'
+     A            $FLTTYPE       3A  B  5 27
+     A            $ERRMSG       40A  O  5 40COLOR(RED)
+     A                                  6  2'-----------------------------------
+     A                                      -'
+     A                                  7  2'Date'
+     A                                  7 13'Time'
+     A                                  7 22'Reference'
+     A                                  7 42'Cr/Dr'
+     A                                  7 51'Amount'
+     A                                  7 69'Balance'
+     A*
+     A          R STMTFTR
+     A*%%TS  SD  20260705  191809  SREERAMC    REL-V7R5M0  5770-WDS
+     A                                      OVERLAY
+     A                                 23  2'F3=Exit   F6=Print Statement  F7=Pag-
+     A                                      eUp   F8=PageDown'
+     A                                      COLOR(BLU)

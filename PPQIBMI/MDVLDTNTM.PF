@@ -1,0 +1,19 @@
+     A***************************************************************
+     A* MDVLDTNTM  - DDS Physical File for MD_VALIDATION_TEAM
+     A***************************************************************
+     A                                      UNIQUE
+     A          R MDVLDTNTMR
+     A            TMMMBRCD      10A
+     A                                      ALIAS(TEAM_MEMBER_CD)
+     A            USER_ID       10A
+     A                                      VARLEN
+     A            DFLTDSGNTN    60A
+     A                                      VARLEN
+     A                                      ALWNULL
+     A                                      ALIAS(DEFAULT_DESIGNATION)
+     A            DFLTDPTCD     10A
+     A                                      ALWNULL
+     A                                      ALIAS(DEFAULT_DEPT_CD)
+     A            ACTIVE_IND     1A
+     A***************************************************************
+     A          K TMMMBRCD
