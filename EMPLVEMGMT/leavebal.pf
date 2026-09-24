@@ -1,6 +1,0 @@
-A               R LVBALREC                  TEXT('LEAVE BALANCE RECORD')
-A                 LBEMPID        4S 0       COLHDG('EMP ID')
-A                 LBCL           2S 0       COLHDG('CASUAL LEAVES')
-A                 LBEL           2S 0       COLHDG('EARNED LEAVES')
-A                 LBCO           2S 0       COLHDG('COMPOFF LEAVES')
-A               K LBEMPID

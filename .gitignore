@@ -2,8 +2,8 @@
 *
 
 # Only allow the 3 requested folders
-!/EMPLVEMGMT/
-!/EMPLVEMGMT/**
+#!/EMPLVEMGMT/
+#!/EMPLVEMGMT/**
 !/PPQIBMI/
 !/PPQIBMI/**
 !/RAMABANK/

@@ -1,4 +1,0 @@
-A               R LOGINREC                  TEXT('LOGIN RECORD FORMAT')
-A                 LOGEMPID       4S 0       COLHDG('EMP ID')
-A                 LOGPWD        20A         COLHDG('PASSWORD')
-A               K LOGEMPID
